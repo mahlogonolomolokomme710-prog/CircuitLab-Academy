@@ -1,22 +1,19 @@
-# Python
+# Python cache and virtual environments
 __pycache__/
 *.py[cod]
-*.pyo
-
-# Virtual environment
 .venv/
 venv/
 env/
 
-# Secrets and environment variables
+# Secrets
 .env
 .streamlit/secrets.toml
 
-# IDE and operating system files
+# Editors / OS
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
 
-# Temporary files
-*.log
+# Temporary installer output
+.build/
