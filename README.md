@@ -310,3 +310,22 @@ This is not yet a drag-and-drop schematic canvas, CircuitJS bridge, or full SPIC
 
 ### Release 3.1 tests
 Run `python -m unittest discover -s tests -p "test_release3*.py" -v`.
+
+
+## Release 3.2 — Visual schematic and CircuitJS bridge
+
+Release 3.2 builds on the local DC editor with a component palette and a simulator hand-off.
+
+### What's new
+- Component palette for adding ideal resistors and DC voltage sources by reference, terminal nodes and value.
+- Schematic-style view with resistor and source symbols and shared node markers.
+- CircuitJS text export for the supported resistor and ideal DC voltage-source subset.
+- Encoded CircuitJS preview embedded in the Studio, using the existing hosted CircuitJS service.
+- Downloadable CircuitJS circuit text for independent opening/import.
+
+### Compatibility and limits
+The CircuitJS bridge currently translates only ideal resistors and ideal DC voltage sources from this Studio. It does not yet translate capacitors, inductors, diodes, transistors, dependent sources, or other SPICE elements. The generated schematic layout is an automatically arranged topology view, not a manual drag-and-drop editor; parallel branches and dense networks may need layout refinement. Check the CircuitJS result independently against the local MNA calculations. The embedded preview requires access to the upstream hosted CircuitJS service.
+
+### Release 3.2 tests
+The Release 3 test module now includes checks for CircuitJS text generation, URL encoding and ground-node validation. Run:
+`python -m unittest discover -s tests -p "test_release3*.py" -v`
