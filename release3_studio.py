@@ -1,4 +1,4 @@
-"""Release 3.1 — Interactive Engineering Studio.
+"""Release 3 — Interactive Engineering Studio.
 
 A transparent, local DC resistive-network editor and modified-nodal-analysis solver.
 Supported elements: ideal DC voltage sources (V) and resistors (R).
@@ -355,6 +355,11 @@ def render() -> None:
         measured = result["node_voltages"][n1] - result["node_voltages"][n2]
         st.metric(f"Voltage · {n1} relative to {n2}", f"{measured:.6g} V")
     st.caption("Calculated values are ideal-model results. Real components have tolerances, parasitics, temperature effects and power limits. Verify exact datasheets and laboratory requirements before any physical construction.")
+
+    st.divider()
+    st.markdown("## Release 3.3 · Dynamic circuit laboratory")
+    from release3_transient import render_transient_lab
+    render_transient_lab()
 
 
 def _to_netlist(records: list[dict[str, Any]]) -> str:
