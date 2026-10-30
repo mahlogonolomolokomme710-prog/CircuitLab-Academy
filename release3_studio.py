@@ -386,6 +386,11 @@ def render() -> None:
     from release3_project_factory import render_project_factory
     render_project_factory()
 
+    st.divider()
+    st.markdown("## Release 3.9 · AI Project Tutor and Design Reviewer")
+    from release3_tutor import render_project_tutor
+    render_project_tutor()
+
 
 def _to_netlist(records: list[dict[str, Any]]) -> str:
     lines = ["* CircuitLab Academy Release 3.1 — ideal DC resistor/source network"]
