@@ -361,6 +361,11 @@ def render() -> None:
     from release3_transient import render_transient_lab
     render_transient_lab()
 
+    st.divider()
+    st.markdown("## Release 3.4 · Semiconductor and rectifier laboratory")
+    from release3_semiconductors import render_component_lab
+    render_component_lab()
+
 
 def _to_netlist(records: list[dict[str, Any]]) -> str:
     lines = ["* CircuitLab Academy Release 3.1 — ideal DC resistor/source network"]
