@@ -441,3 +441,38 @@ The tests cover circuit structure, ground connectivity, floating nodes, unsuppor
 - Development branch: `release-3/interactive-engineering-studio`
 - Release 3.6 is integrated additively after Release 3.5 in the Studio.
 - Do not merge to `main` or change the stable deployment until local tests, runtime preview and owner approval are complete.
+
+
+### Release 3.7 — Fault Detective and Troubleshooting Laboratory
+
+Release 3.7 adds a virtual fault-injection exercise to the Interactive Engineering Studio. Students select a component and introduce a controlled software-only fault into a copy of the circuit, then compare the baseline and faulted ideal DC operating points.
+
+#### Supported virtual fault scenarios
+- Open component: removes the selected component from the virtual network.
+- Short resistor: substitutes a configurable very-low resistance for a selected resistor.
+- Wrong component value: multiplies the selected component value by a configurable factor.
+- Reversed voltage source: reverses the sign of a selected ideal DC voltage source.
+
+#### Learning workflow
+- Select a component from the current Studio network.
+- Choose a compatible fault type and inject it into a virtual copy; the student's original circuit is not changed.
+- Compare baseline and faulted node voltages, component currents and power.
+- Review a fault-mechanism explanation and a safe, measurement-led troubleshooting sequence.
+- Download a fault diagnosis exercise report.
+
+#### Scope and limitations
+Fault injection is supported only for the current ideal DC resistor and ideal voltage-source solver. The virtual short is represented by a small nonzero resistance, not a physical zero-ohm short. An open or other injected fault may make the network disconnected or mathematically singular; in that case the solver error is shown rather than inventing operating values. The lab does not simulate diodes, transistors, capacitors, inductors, AC behaviour, transients, thermal failure, noise, component tolerances or real instrument measurements. It does not automatically identify an unknown physical fault from measurements; students select the fault scenario for this guided exercise.
+
+The comparisons are simulated ideal-model results, not measured data. Never deliberately short a live circuit. Use only supervised, isolated, current-limited low-voltage equipment for physical work, and power down before rewiring.
+
+#### Regression tests
+Run from the repository root:
+
+    python -m unittest discover -s tests -p "test_release3_fault_diagnosis.py" -v
+
+The tests cover fault injection, invalid fault/component combinations, value changes, polarity reversal, operating-point comparison and report generation. Execute locally and complete a Streamlit preview test before describing the release as runtime-verified.
+
+#### Safe release workflow
+- Development branch: `release-3/interactive-engineering-studio`
+- Release 3.7 is integrated additively after Release 3.6.
+- Do not merge to `main` or alter the stable deployment until local tests, runtime preview and owner approval are complete.
