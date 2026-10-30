@@ -6,6 +6,7 @@ import urllib.request
 import streamlit as st
 
 from release2_circuit_reader import parse_circuitjs
+from release2_topology import analyze_topology
 
 SYSTEM_PROMPT = """You are CircuitLab Academy's AI Engineering Copilot, an expert electronics and electrical engineering tutor.
 Help students understand, design, calculate, simulate, test and troubleshoot circuits. Show equations, substitutions,
@@ -15,7 +16,7 @@ user-provided, simulated (only when the user supplied simulator evidence), and s
 For component selection, explain which datasheet ratings must be checked; do not fabricate exact specifications.
 For physical builds, never recommend connecting student circuits directly to mains. Prioritize isolated,
 current-limited low-voltage supplies for beginner experiments and power-off checks before rewiring.
-Do not claim to see a live schematic or simulator. When a CircuitJS schematic extraction is supplied, use it as source evidence, state parser limitations, and do not infer unobserved simulator readings. Ask for circuit values, a description or observations when needed.
+Do not claim to see a live schematic or simulator. When a CircuitJS schematic extraction and topology interpretation are supplied, use them as evidence with appropriate uncertainty. Treat recognized topologies as heuristic candidates, explain what graph pattern supports each candidate, and state what must be checked. Never infer unobserved simulator readings. Ask for circuit values, a description or observations when needed.
 Do not present educational assistance as a substitute for lecturer, laboratory or professional review.
 Use clear headings and complete step-by-step explanations."""
 
@@ -111,14 +112,19 @@ def render():
             circuit = st.text_area("Circuit description and component values", placeholder="Example: 12 V DC source, 1 kΩ resistor, red LED; target current 10 mA.", height=90, key="r2_circuit")
             schematic_file = st.file_uploader("Upload a CircuitJS/Falstad schematic (.txt)", type=["txt"], key="r2_schematic_upload", help="In CircuitJS, export or save the circuit as text, then upload that .txt file here.")
             schematic_summary = ""
+            topology_summary = ""
             if schematic_file is not None:
                 try:
                     schematic_text = schematic_file.getvalue().decode("utf-8-sig")
                     parsed_schematic = parse_circuitjs(schematic_text)
                     schematic_summary = parsed_schematic["summary"]
+                    topology_result = analyze_topology(parsed_schematic)
+                    topology_summary = topology_result["summary"]
                     st.success(f"Schematic read: {len(parsed_schematic['components'])} components, {parsed_schematic['wire_count']} wire segments, {parsed_schematic['net_count']} inferred nets.")
                     with st.expander("Review extracted schematic data"):
                         st.code(schematic_summary)
+                    with st.expander("Review topology interpretation", expanded=True):
+                        st.markdown(topology_summary.replace("\\n", "\n"))
                 except Exception as exc:
                     st.error(f"Could not read this schematic file: {type(exc).__name__}: {exc}")
             level = st.selectbox("Student level", ["First-year / foundations", "Intermediate diploma", "Advanced engineering"], key="r2_level")
@@ -137,7 +143,7 @@ def render():
             if not api_key:
                 st.warning("Your question is retained in this session, but AI replies require an API key. Configure OPENAI_API_KEY in Streamlit Secrets. Calculators work without it.")
             else:
-                context = {"project": project, "circuit_description": circuit, "schematic_extraction": schematic_summary or "No schematic file uploaded.", "student_level": level, "task": task}
+                context = {"project": project, "circuit_description": circuit, "schematic_extraction": schematic_summary or "No schematic file uploaded.", "topology_interpretation": topology_summary or "No topology analysis available.", "student_level": level, "task": task}
                 msgs = [{"role": "system", "content": SYSTEM_PROMPT + "\n\nStudent context:\n" + json.dumps(context, ensure_ascii=False)}]
                 msgs.extend(st.session_state.r2_messages[-12:])
                 payload = json.dumps({"model": model, "messages": msgs, "temperature": 0.25}).encode("utf-8")
@@ -165,6 +171,7 @@ def render():
         - Measurement-led troubleshooting and design review.
         - Interpretation of simulation results supplied by you.
         - First-pass extraction of component records and inferred connectivity from an uploaded CircuitJS/Falstad text schematic.
+        - Heuristic topology recognition for series/parallel resistor relationships, voltage-divider candidates, RC networks, diode networks/rectifier candidates, and LC networks.
         - Local calculators for Ohm's law, power, voltage dividers, RC time constants and full-wave ripple estimates.
         """)
         st.subheader("Configure AI on the separate test deployment")
