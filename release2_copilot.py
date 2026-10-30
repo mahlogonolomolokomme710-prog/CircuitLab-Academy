@@ -7,6 +7,7 @@ import streamlit as st
 
 from release2_circuit_reader import parse_circuitjs
 from release2_topology import analyze_topology
+from release2_simulation import analyze_measurements, parse_measurement_csv, CSV_TEMPLATE
 
 SYSTEM_PROMPT = """You are CircuitLab Academy's AI Engineering Copilot, an expert electronics and electrical engineering tutor.
 Help students understand, design, calculate, simulate, test and troubleshoot circuits. Show equations, substitutions,
@@ -103,7 +104,7 @@ def render():
     a, b = st.columns([1, 2])
     a.success("AI configured") if api_key else a.info("Local calculators ready · AI key not configured")
     b.caption(f"Model: {model} · OpenAI-compatible chat endpoint")
-    chat_tab, calc_tab, guide_tab = st.tabs(["Copilot conversation", "Engineering calculators", "Setup and limitations"])
+    chat_tab, calc_tab, sim_tab, guide_tab = st.tabs(["Copilot conversation", "Engineering calculators", "Simulation intelligence", "Setup and limitations"])
     with chat_tab:
         with st.expander("Engineering context", expanded=True):
             projects = st.session_state.get("cla_projects", [])
@@ -143,7 +144,7 @@ def render():
             if not api_key:
                 st.warning("Your question is retained in this session, but AI replies require an API key. Configure OPENAI_API_KEY in Streamlit Secrets. Calculators work without it.")
             else:
-                context = {"project": project, "circuit_description": circuit, "schematic_extraction": schematic_summary or "No schematic file uploaded.", "topology_interpretation": topology_summary or "No topology analysis available.", "student_level": level, "task": task}
+                context = {"project": project, "circuit_description": circuit, "schematic_extraction": schematic_summary or "No schematic file uploaded.", "topology_interpretation": topology_summary or "No topology analysis available.", "simulation_comparison": st.session_state.get("r2_simulation_summary", "No simulation comparison supplied."), "student_level": level, "task": task}
                 msgs = [{"role": "system", "content": SYSTEM_PROMPT + "\n\nStudent context:\n" + json.dumps(context, ensure_ascii=False)}]
                 msgs.extend(st.session_state.r2_messages[-12:])
                 payload = json.dumps({"model": model, "messages": msgs, "temperature": 0.25}).encode("utf-8")
@@ -163,6 +164,43 @@ def render():
         st.caption("The Copilot cannot inspect the live CircuitJS canvas directly yet. It can now read an exported CircuitJS/Falstad .txt schematic; paste simulator observations separately because extraction does not provide verified simulation measurements.")
     with calc_tab:
         _calculators()
+    with sim_tab:
+        st.subheader("Compare theory with your CircuitJS readings")
+        st.write("Upload a CSV containing values you calculated and values you observed in CircuitJS. The tool compares the numbers; it does not run the simulator or verify how readings were obtained.")
+        st.download_button("Download CSV template", CSV_TEMPLATE, file_name="circuitlab_simulation_comparison_template.csv", mime="text/csv")
+        st.caption("Required columns: measurement, theoretical, simulated. Optional: unit, tolerance_pct (default 5%), tolerance_abs (used when the theoretical value is zero).")
+        measurement_file = st.file_uploader("Upload measurement comparison CSV", type=["csv"], key="r2_simulation_csv")
+        if measurement_file is not None:
+            try:
+                measurement_rows = parse_measurement_csv(measurement_file.getvalue().decode("utf-8-sig"))
+                default_tolerance = st.number_input("Default percentage tolerance (%)", min_value=0.0, value=5.0, step=0.5, key="r2_sim_tol")
+                comparison = analyze_measurements(measurement_rows, default_tolerance)
+                st.session_state["r2_simulation_summary"] = comparison["summary"]
+                m1, m2, m3 = st.columns(3)
+                m1.metric("Within tolerance", comparison["within_tolerance"])
+                m2.metric("Outside tolerance", comparison["outside_tolerance"])
+                m3.metric("Needs review", comparison["review"])
+                import pandas as pd
+                display_rows = []
+                for item in comparison["results"]:
+                    display_rows.append({
+                        "Measurement": item["measurement"],
+                        "Theoretical": item["theoretical"],
+                        "Simulated": item["simulated"],
+                        "Unit": item["unit"],
+                        "Difference": item["absolute_error"],
+                        "Error (%)": item["percentage_error"],
+                        "Status": item["status"],
+                    })
+                st.dataframe(pd.DataFrame(display_rows), use_container_width=True, hide_index=True)
+                st.download_button("Download comparison report", comparison["summary"], file_name="circuitlab_simulation_comparison.txt", mime="text/plain")
+                st.info("Interpretation: a tolerance flag is a numerical screening result, not proof of a faulty circuit. Check component tolerances, simulator model assumptions, loading, initial conditions, measurement location, units and rounding.")
+            except Exception as exc:
+                st.error(f"Could not analyse this file: {type(exc).__name__}: {exc}")
+        else:
+            st.session_state["r2_simulation_summary"] = st.session_state.get("r2_simulation_summary", "")
+            st.info("Upload the template after entering your own theoretical and simulated values. Example values in the template are illustrative only.")
+
     with guide_tab:
         st.subheader("Release 2 capabilities")
         st.markdown("""
@@ -174,6 +212,17 @@ def render():
         - Heuristic topology recognition for series/parallel resistor relationships, voltage-divider candidates, RC networks, diode networks/rectifier candidates, and LC networks.
         - Local calculators for Ohm's law, power, voltage dividers, RC time constants and full-wave ripple estimates.
         """)
+        st.subheader("Release 2.3 — Simulation Intelligence")
+        st.markdown("""
+        - Compare theoretical values with student-supplied CircuitJS readings.
+        - Calculate signed absolute difference and percentage error where mathematically defined.
+        - Apply a default or row-specific percentage tolerance.
+        - Handle zero theoretical references using an explicit absolute tolerance rather than dividing by zero.
+        - Export a plain-text comparison summary for a lab report.
+        - Pass the comparison summary into the Copilot context when the AI service is configured.
+        """)
+        st.caption("This is a measurement comparison and screening aid, not a circuit solver, automatic fault diagnosis engine, or verified simulator connection.")
+
         st.subheader("Configure AI on the separate test deployment")
         st.markdown("""
         1. Create an API key with your chosen OpenAI API account.
