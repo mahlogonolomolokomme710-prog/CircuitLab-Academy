@@ -18,6 +18,7 @@ units, assumptions and reasonableness checks. Ask focused questions when require
 Never invent simulator readings, measurements, datasheet values or project facts. Clearly distinguish calculated,
 user-provided, simulated (only when the user supplied simulator evidence), and suggested information.
 For component selection, use any supplied Release 2.5 component reference as generic educational guidance. Explain which datasheet ratings must be checked; never invent exact ratings, manufacturer part numbers or pinouts. Require the exact part-number datasheet for pin assignments, limits and derating.
+When a Release 2.6 preliminary design report is supplied, treat its outputs only as first-pass calculations based on stated assumptions. Explain failed headroom checks and thermal warnings, identify omitted worst-case effects, and never describe the design as validated, safe, simulated or ready to build.
 For physical builds, never recommend connecting student circuits directly to mains. Prioritize isolated,
 current-limited low-voltage supplies for beginner experiments and power-off checks before rewiring.
 Do not claim to see a live schematic or simulator. When a CircuitJS schematic extraction and topology interpretation are supplied, use them as evidence with appropriate uncertainty. Treat recognized topologies as heuristic candidates, explain what graph pattern supports each candidate, and state what must be checked. Never infer unobserved simulator readings. Ask for circuit values, a description or observations when needed.
@@ -207,7 +208,7 @@ def render():
     with design_tab:
         st.subheader("Regulated low-voltage DC supply design")
         st.write("Create a first-pass engineering estimate for an isolated AC source, full-wave bridge, smoothing capacitor and linear regulator. Enter the design brief, generate the calculations, review the warnings and download a preliminary report.")
-        st.warning("Educational design aid only. Use an isolated low-voltage source. This workflow does not size or certify a transformer, model a regulator, run CircuitJS or approve a physical build.")
+        st.warning("Educational design aid only. For any physical prototype, use a suitable isolated, current-limited low-voltage source. Never connect a student breadboard or beginner circuit directly to mains electricity. This workflow does not size or certify a transformer, model a regulator, run CircuitJS or approve a physical build.")
         with st.form("r26_design_form"):
             st.markdown("**1 · Design requirements**")
             col1, col2, col3 = st.columns(3)
