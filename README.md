@@ -71,3 +71,26 @@ Do not run `git push origin main` as part of this release-preparation workflow. 
 CircuitJS1 is distributed under GPL version 2 or later. Preserve upstream copyright and licence notices and comply with applicable source-distribution obligations. See `CIRCUITJS1_ATTRIBUTION.md` and the upstream repository: https://github.com/sharpie7/circuitjs1.
 
 These prepared circuits are educational examples. Simulation models may idealize components; verify values and circuit operation. Never connect a beginner circuit directly to mains electricity.
+
+
+## Release 1 — Engineering Interface (development branch)
+
+Release 1 introduces a project-first Engineering Command Center while preserving the existing specialist workspaces and CircuitJS simulator.
+
+### What's new
+- New Engineering Command Center as the default home workspace.
+- Project manager to create engineering projects with domain, level, objective and status.
+- Project notes and selected-project JSON export.
+- Project register and recent activity export.
+- Central shortcuts to the existing simulator, prepared circuits, design bench, component library, fault detective, guided build and report builder.
+- Existing specialist pages remain available; this release does not replace the current simulator implementation.
+
+### Important limitations
+- Project records are stored in Streamlit session state in Release 1. They are not yet account-based or persistent across sessions. Export the project register before closing the session.
+- The new command center is an additive interface layer. It does not yet provide a drag-and-drop schematic editor, integrated AI copilot, or new simulation engine; those belong to later releases.
+- The existing hosted CircuitJS integration is retained and must be regression-tested before any deployment.
+
+### Safe development workflow
+- Development branch: `release-1/engineering-interface`
+- Stable baseline: `stable/working-deployment-2026-10-30`
+- Do not merge this branch into `main` or change the live deployment until local and preview tests pass and the owner approves.
