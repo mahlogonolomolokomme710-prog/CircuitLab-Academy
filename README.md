@@ -547,3 +547,43 @@ The tests cover all six question banks, evidence scoring, project-specific topic
 - Development branch: `release-3/interactive-engineering-studio`
 - Release 3.9 is additive to the existing Release 3.1–3.8 workflows.
 - Do not merge to `main` or change the stable deployment until tests, local Streamlit preview and owner approval are complete.
+
+
+### Release 4.0 — Electronics University
+
+Release 4.0 introduces a structured general electronics learning hub alongside the engineering studio.
+
+#### Learning pathways
+Eight lesson areas provide learning outcomes, explanatory content, key equations, worked examples, practical activities, common misconceptions and short knowledge checks:
+- DC circuit fundamentals
+- Series, parallel and network analysis
+- Capacitors, inductors and transient response
+- Semiconductor fundamentals and diodes
+- Power supplies and linear regulation
+- Transistors and basic amplifiers
+- Operational amplifiers and analogue interfaces
+- Digital electronics and logic systems
+
+#### Component library
+The searchable reference includes resistors, capacitors, inductors, diodes, LEDs, Zener diodes, BJTs, MOSFETs, operational amplifiers, 555 timers, transformers, voltage regulators, relays, fuses and potentiometers. Entries cover function, operating principle, selection parameters, common failure modes, verification and cautions.
+
+#### Learning tools
+- Filter lessons by learning stage.
+- Search lesson and component knowledge.
+- Complete short knowledge checks with explanations.
+- Download lesson notes and component reference sheets in Markdown.
+
+#### Scope and limitations
+This is a general educational foundation, not an official TUT curriculum map and not a replacement for current module guides, prescribed textbooks or lecturer instructions. It does not yet contain a complete semester-by-semester TUT syllabus, institution-specific outcomes, laboratory manuals, assessment banks or persistent student progress. Equations and component information must be checked against authoritative references and exact manufacturer datasheets. Physical experiments require approved, supervised, isolated low-voltage equipment.
+
+#### Regression tests
+Run from the repository root:
+
+    python -m unittest discover -s tests -p "test_release4_university.py" -v
+
+The tests cover lesson completeness, component reference structure, search, exports and invalid lookups. Execute locally and complete a Streamlit preview before describing Release 4.0 as runtime-verified.
+
+#### Safe release workflow
+- Development branch: `release-4/electronics-university`
+- Release 4.0 is integrated after Release 3.9 in the development Studio.
+- Do not merge to `main` or alter the stable deployment until tests, local preview and owner approval are complete.
