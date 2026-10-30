@@ -288,6 +288,7 @@ def render_power_supply_studio() -> None:
     except ValueError as exc:
         st.error(str(exc))
         return
+    st.session_state["r35_result"] = result
     st.divider()
     st.markdown("#### Design results")
     a, b, c, d = st.columns(4)
