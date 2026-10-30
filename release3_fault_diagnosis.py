@@ -116,9 +116,9 @@ def build_fault_report(reference: str, fault: str, explanation: str,
                       f"Solver message: {solver_error}", ""])
     else:
         lines.extend(["### Node voltage comparison", "",
-                      comparison["nodes"].to_markdown(index=False), "",
+                      comparison["nodes"].to_csv(index=False), "",
                       "### Component operating-point comparison", "",
-                      comparison["components"].to_markdown(index=False), ""])
+                      comparison["components"].to_csv(index=False), ""])
     lines.extend(["## Safety and limitations",
                   "This is a simulated teaching fault in an ideal DC network containing only resistors and ideal voltage sources. It is not a physical measurement or a prediction of all real-world fault behaviour. No mains testing is supported. Never deliberately short a live circuit. Use only supervised, isolated, current-limited low-voltage laboratory equipment, and power down before rewiring.", ""])
     return "\n".join(lines)
