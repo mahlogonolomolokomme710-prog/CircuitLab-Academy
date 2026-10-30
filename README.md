@@ -415,3 +415,29 @@ The tests cover rectifier ripple frequency, diode-drop accounting, capacitance/r
 - Development branch: `release-3/interactive-engineering-studio`
 - Release 3.5 is additive to the Release 3.4 Studio.
 - Do not merge to `main` or alter the stable deployment until local tests, runtime preview and owner approval are complete.
+
+
+### Release 3.6 — Intelligent Circuit Design Validation
+
+Release 3.6 adds a deterministic, rule-based validation layer to the Interactive Engineering Studio. It complements the Release 3.1 DC network solver and Release 3.5 power-supply estimator; it does not use an AI model or replace a SPICE simulator.
+
+#### Validation capabilities
+- **Circuit structure:** checks empty networks, missing/duplicate references, missing terminals, same-node connections, unsupported element types, non-finite values, non-positive resistor values, explicit ground node and disconnected/floating nodes.
+- **Operating-point component ratings:** allows students to enter datasheet maximum voltage, current and power for each solved component. Calculated absolute operating-point magnitudes are compared with those supplied limits; exceeded limits are errors and values at or above 80% of a supplied limit are warnings.
+- **Power-supply review:** reviews Release 3.5 low-line regulator headroom, reservoir valley, ripple target, ESR-inclusive ripple estimate, simplified thermal status, capacitor voltage screening and transformer VA estimate.
+- **Actionable findings:** results are grouped into errors, warnings, information and passed checks. Missing component ratings are explicitly reported as unverified, never silently treated as safe.
+
+#### Important limitations
+Validation is only as good as the entered circuit, solved model and component ratings. The local DC solver currently supports ideal DC voltage sources and resistors. Component rating checks compare DC operating-point magnitudes only; they do not evaluate transient or surge stress, tolerance distributions, temperature derating, safe operating area, frequency response, insulation, creepage/clearance, fuse coordination or applicable standards. The power-supply review inherits all Release 3.5 model limitations. A passed check is not a safety approval or proof of construction readiness.
+
+#### Regression tests
+Run from the repository root:
+
+    python -m unittest discover -s tests -p "test_release3_validation.py" -v
+
+The tests cover circuit structure, ground connectivity, floating nodes, unsupported elements, component rating exceedance/margins, missing ratings and power-supply review flags. Execute locally and complete a Streamlit preview test before describing the release as runtime-verified.
+
+#### Safe release workflow
+- Development branch: `release-3/interactive-engineering-studio`
+- Release 3.6 is integrated additively after Release 3.5 in the Studio.
+- Do not merge to `main` or change the stable deployment until local tests, runtime preview and owner approval are complete.
