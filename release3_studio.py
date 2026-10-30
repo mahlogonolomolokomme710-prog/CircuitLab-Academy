@@ -248,6 +248,8 @@ def render() -> None:
     st.info("Release 3.2 adds a component palette, a more schematic-like topology view, and export/preview in the existing CircuitJS engine. The local MNA solver still supports ideal DC voltage sources and resistors only.")
     if "r3_network" not in st.session_state:
         st.session_state.r3_network = pd.DataFrame(STARTER, columns=COLUMNS)
+    if "r3_editor_version" not in st.session_state:
+        st.session_state.r3_editor_version = 0
     left, right = st.columns([1.15, .85])
     with left:
         st.subheader("1 · Build your circuit")
@@ -264,7 +266,7 @@ def render() -> None:
                 "Node2": st.column_config.TextColumn("Negative / second node"),
                 "Value": st.column_config.NumberColumn("Value", min_value=0.000000001, format="%.6g"),
             },
-            key="r3_network_editor",
+            key=f"r3_network_editor_{st.session_state.r3_editor_version}",
         )
         st.session_state.r3_network = edited
         with st.expander("Component palette · add a part without editing the table", expanded=False):
@@ -288,19 +290,19 @@ def render() -> None:
                 else:
                     appended = pd.concat([edited, pd.DataFrame([{"Ref":new_ref.strip(),"Type":new_type,"Node1":new_n1,"Node2":new_n2,"Value":new_value}])], ignore_index=True)
                     st.session_state.r3_network = appended
-                    st.session_state.pop("r3_network_editor", None)
+                    st.session_state.r3_editor_version += 1
                     st.session_state.pop("r3_result", None)
                     st.rerun()
         c1, c2 = st.columns(2)
         if c1.button("Load example voltage divider", key="r3_example"):
             st.session_state.r3_network = pd.DataFrame(STARTER, columns=COLUMNS)
-            st.session_state.pop("r3_network_editor", None)
+            st.session_state.r3_editor_version += 1
             st.session_state.pop("r3_result", None)
             st.session_state.pop("r3_error", None)
             st.rerun()
         if c2.button("Clear circuit", key="r3_clear"):
             st.session_state.r3_network = pd.DataFrame(columns=COLUMNS)
-            st.session_state.pop("r3_network_editor", None)
+            st.session_state.r3_editor_version += 1
             st.session_state.pop("r3_result", None)
             st.session_state.pop("r3_error", None)
             st.rerun()
