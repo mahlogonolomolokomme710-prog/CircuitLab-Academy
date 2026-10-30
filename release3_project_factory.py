@@ -199,7 +199,7 @@ def calculate_project(project_id: str, inputs: dict[str, Any]) -> dict[str, floa
             raise ValueError("LED forward voltage must be below the supply voltage.")
         current = ma / 1000.0
         rmin = (vs - vf) / current
-        e12 = [10, 12, 15, 18, 22, 27, 33, 39, 47, 56, 68, 82]
+        e12 = [1.0, 1.2, 1.5, 1.8, 2.2, 2.7, 3.3, 3.9, 4.7, 5.6, 6.8, 8.2]
         decade = 10 ** math.floor(math.log10(rmin))
         standard = next((n * decade for n in e12 if n * decade >= rmin), None)
         if standard is None:
@@ -328,7 +328,12 @@ def render_project_factory() -> None:
     selected = st.selectbox("Choose an engineering project", ids,
                             format_func=lambda key: labels[key], key="r38_project")
     template = PROJECTS[selected]
-    st.markdown(f"**Recommended level:** {template['level']}")
+    p1, p2 = st.columns([2, 1])
+    custom_title = p1.text_input("Project title", value=template["name"], key="r38_custom_title")
+    level = p2.selectbox("Student level", ["Beginner", "Intermediate", "Advanced"],
+                         index=1 if "Intermediate" in template["level"] else 0,
+                         key="r38_student_level")
+    st.markdown(f"**Suggested level:** {template['level']}")
     st.write(template["goal"])
     with st.expander("Project-specific inputs and first-pass calculations", expanded=True):
         values: dict[str, Any] = {}
@@ -368,7 +373,7 @@ def render_project_factory() -> None:
             values["capacitance_nf"] = c.number_input("Timing capacitor (nF)", min_value=0.01, value=10.0, key="r38_555_c")
         st.caption("All outputs are first-pass educational calculations. Actual component behaviour, tolerances, switching losses and parasitics may change results.")
     try:
-        pack = build_project_pack(selected, values)
+        pack = build_project_pack(selected, values, custom_title, level)
     except ValueError as exc:
         st.error(str(exc))
         return
