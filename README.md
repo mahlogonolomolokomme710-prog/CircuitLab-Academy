@@ -509,3 +509,41 @@ The tests cover template completeness, assessment rubric totals, calculation out
 - Development branch: `release-3/interactive-engineering-studio`
 - Release 3.8 is integrated additively after Release 3.7.
 - Do not merge to `main` or alter the stable deployment until local tests, runtime preview and owner approval are complete.
+
+
+### Release 3.9 — AI Project Tutor and Design Reviewer
+
+Release 3.9 adds a project-specific tutoring and evidence-review workflow for the six Release 3.8 project templates.
+
+#### Offline project reviewer
+- Students organise their evidence into requirements, theory/calculations, component selection and datasheets, schematic/simulation, testing, discussion and safety.
+- A transparent completeness rubric assigns partial evidence points and identifies missing sections.
+- Project-specific keyword checks highlight topics that have not yet been mentioned.
+- A Markdown review report can be downloaded.
+
+The score is an **evidence-completeness indicator**, not a technical grade. It does not solve or verify equations, inspect schematic files, confirm datasheet values, assess standards compliance or approve a physical design.
+
+#### Socratic tutor
+- Five guided questions for each of the six project types.
+- Questions encourage students to explain principles, derive equations, justify choices, consider tolerances and plan verification.
+- An offline self-check prompts students to state the governing principle, equation, units, assumptions and next verification step.
+
+#### Optional live AI tutor
+- An optional OpenAI-compatible chat-completions connection uses `OPENAI_API_KEY`, optional `OPENAI_MODEL` (default `gpt-4o-mini`) and optional `OPENAI_BASE_URL` Streamlit Secrets.
+- No API request is made unless the student presses the live tutor button and a key is configured.
+- The offline reviewer and Socratic question bank remain available without an API key or API expenditure.
+- API usage is billed separately by the API provider; a ChatGPT subscription does not fund API calls.
+
+#### Safety and limitations
+AI responses can be incomplete or incorrect. Students must independently derive and verify calculations, check exact manufacturer datasheets, and obtain instructor approval. The AI tutor is instructed not to certify safety or invent component ratings. Use supervised, isolated, current-limited low-voltage equipment only; never connect student circuits directly to mains electricity.
+
+#### Regression tests
+Run:
+`python -m unittest discover -s tests -p "test_release3_tutor.py" -v`
+
+The tests cover all six question banks, evidence scoring, project-specific topic gaps, unknown-project validation and tutor-context construction. Tests have been added but must be executed locally before runtime verification.
+
+#### Safe release workflow
+- Development branch: `release-3/interactive-engineering-studio`
+- Release 3.9 is additive to the existing Release 3.1–3.8 workflows.
+- Do not merge to `main` or change the stable deployment until tests, local Streamlit preview and owner approval are complete.
