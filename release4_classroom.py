@@ -114,7 +114,6 @@ def quiz_feedback(question: dict[str,Any], selected: str) -> dict[str,Any]:
 def render_interactive_classroom() -> None:
     import streamlit as st
     import pandas as pd
-    import matplotlib.pyplot as plt
 
     st.markdown("""
     <div style="padding:22px 26px;border-radius:18px;background:linear-gradient(115deg,#101d32,#155c68);color:#f4fbff;margin-bottom:16px">
@@ -176,7 +175,8 @@ def render_interactive_classroom() -> None:
             tau=resistance*capacitance*1e-6
             st.metric("Time constant τ",f"{tau:.5g} s")
             frame=pd.DataFrame(data).set_index("time_s")
-            st.line_chart(frame,y="voltage_v",x_label="Time (s)",y_label="Capacitor voltage (V)")
+            st.caption("Horizontal axis: time (s) · Vertical axis: capacitor voltage (V)")
+            st.line_chart(frame,y="voltage_v")
             st.write(f"At τ = {tau:.4g} s, the ideal capacitor voltage is approximately {source*(1-math.exp(-1)):.4g} V (63.2% of the final value).")
             st.download_button("Download waveform CSV",frame.reset_index().to_csv(index=False),file_name="rc_charging_waveform.csv",mime="text/csv")
         elif selected=="ohms_law":
