@@ -198,7 +198,7 @@ def render():
             except Exception as exc:
                 st.error(f"Could not analyse this file: {type(exc).__name__}: {exc}")
         else:
-            st.session_state["r2_simulation_summary"] = st.session_state.get("r2_simulation_summary", "")
+            st.session_state["r2_simulation_summary"] = ""
             st.info("Upload the template after entering your own theoretical and simulated values. Example values in the template are illustrative only.")
 
     with guide_tab:
