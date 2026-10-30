@@ -366,6 +366,11 @@ def render() -> None:
     from release3_semiconductors import render_component_lab
     render_component_lab()
 
+    st.divider()
+    st.markdown("## Release 3.5 · Advanced power-supply design studio")
+    from release3_power_supply import render_power_supply_studio
+    render_power_supply_studio()
+
 
 def _to_netlist(records: list[dict[str, Any]]) -> str:
     lines = ["* CircuitLab Academy Release 3.1 — ideal DC resistor/source network"]
