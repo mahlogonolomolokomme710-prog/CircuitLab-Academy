@@ -406,6 +406,11 @@ def render() -> None:
     from release4_assessment import render_assessment_and_labs
     render_assessment_and_labs()
 
+    st.divider()
+    st.markdown("## Release 4.3 · Visual Electronics Learning Engine")
+    from release4_visual_engine import render_visual_learning_engine
+    render_visual_learning_engine()
+
 
 def _to_netlist(records: list[dict[str, Any]]) -> str:
     lines = ["* CircuitLab Academy Release 3.1 — ideal DC resistor/source network"]
