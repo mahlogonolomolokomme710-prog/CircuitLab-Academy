@@ -9,6 +9,7 @@ from release2_circuit_reader import parse_circuitjs
 from release2_topology import analyze_topology
 from release2_simulation import analyze_measurements, parse_measurement_csv, CSV_TEMPLATE
 from release2_diagnostics import build_diagnosis
+from release2_components import COMPONENTS, get_component, search_components, selection_checklist, catalogue_summary
 
 SYSTEM_PROMPT = """You are CircuitLab Academy's AI Engineering Copilot, an expert electronics and electrical engineering tutor.
 Help students understand, design, calculate, simulate, test and troubleshoot circuits. Show equations, substitutions,
@@ -105,7 +106,7 @@ def render():
     a, b = st.columns([1, 2])
     a.success("AI configured") if api_key else a.info("Local calculators ready · AI key not configured")
     b.caption(f"Model: {model} · OpenAI-compatible chat endpoint")
-    chat_tab, calc_tab, sim_tab, diag_tab, guide_tab = st.tabs(["Copilot conversation", "Engineering calculators", "Simulation intelligence", "Fault diagnosis", "Setup and limitations"])
+    chat_tab, calc_tab, sim_tab, diag_tab, comp_tab, guide_tab = st.tabs(["Copilot conversation", "Engineering calculators", "Simulation intelligence", "Fault diagnosis", "Component intelligence", "Setup and limitations"])
     with chat_tab:
         with st.expander("Engineering context", expanded=True):
             projects = st.session_state.get("cla_projects", [])
@@ -145,7 +146,7 @@ def render():
             if not api_key:
                 st.warning("Your question is retained in this session, but AI replies require an API key. Configure OPENAI_API_KEY in Streamlit Secrets. Calculators work without it.")
             else:
-                context = {"project": project, "circuit_description": circuit, "schematic_extraction": schematic_summary or "No schematic file uploaded.", "topology_interpretation": topology_summary or "No topology analysis available.", "simulation_comparison": st.session_state.get("r2_simulation_summary", "No simulation comparison supplied."), "fault_investigation": st.session_state.get("r2_diagnosis_summary", "No fault investigation has been run."), "student_level": level, "task": task}
+                context = {"project": project, "circuit_description": circuit, "schematic_extraction": schematic_summary or "No schematic file uploaded.", "topology_interpretation": topology_summary or "No topology analysis available.", "simulation_comparison": st.session_state.get("r2_simulation_summary", "No simulation comparison supplied."), "fault_investigation": st.session_state.get("r2_diagnosis_summary", "No fault investigation has been run."), "component_reference": st.session_state.get("r25_component_context", "No component reference selected."), "student_level": level, "task": task}
                 msgs = [{"role": "system", "content": SYSTEM_PROMPT + "\n\nStudent context:\n" + json.dumps(context, ensure_ascii=False)}]
                 msgs.extend(st.session_state.r2_messages[-12:])
                 payload = json.dumps({"model": model, "messages": msgs, "temperature": 0.25}).encode("utf-8")
@@ -225,6 +226,16 @@ def render():
         st.caption("This is a measurement comparison and screening aid, not a circuit solver, automatic fault diagnosis engine, or verified simulator connection.")
 
         st.subheader("Release 2.4 — Intelligent Fault Diagnosis")
+        st.subheader("Release 2.5 — Component Intelligence")
+        st.markdown("""
+        - Searchable component catalogue spanning passive components, semiconductors, optoelectronics, ICs, power management, magnetics, protection and switching.
+        - Component operating principles, common applications and design-selection criteria.
+        - Common failure modes and practical verification steps.
+        - Downloadable component-selection checklist.
+        - Optional session-only transfer of a selected component reference into Copilot context.
+        - No invented universal ratings or pinouts: exact specifications must be verified against the exact manufacturer's datasheet.
+        """)
+
         st.markdown("""
         - Combines supplied simulation-comparison results, topology notes and symptom descriptions.
         - Generates prioritized, evidence-linked checks for voltage, current, divider, series/parallel, RC and rectifier scenarios.
@@ -266,6 +277,58 @@ def render():
             st.caption("The report is also included in Copilot context when the AI API is configured. A suggested check is not proof of a fault.")
         else:
             st.info("No investigation has been run in this session yet.")
+
+    with comp_tab:
+        st.subheader("Component intelligence library")
+        st.write("Explore component operating principles, applications, selection criteria, common failure modes and verification steps. This is a generic learning reference: exact ratings and pinouts must come from the manufacturer's datasheet for the specific part number.")
+        families = ["All"] + sorted({item["family"] for item in COMPONENTS})
+        family_choice = st.selectbox("Component family", families, key="r25_family")
+        search_text = st.text_input("Search components or applications", placeholder="Try: MOSFET, ripple, current limiting, overheating", key="r25_search")
+        matches = search_components(search_text, family_choice)
+        st.caption(f"{len(matches)} component reference(s) found · {len(COMPONENTS)} entries in the catalogue")
+        if matches:
+            labels = {f'{item["name"]} · {item["family"]}': item["id"] for item in matches}
+            selected_label = st.selectbox("Choose a component reference", list(labels), key="r25_selected")
+            selected = get_component(labels[selected_label])
+            st.markdown(f"### {selected['name']}")
+            st.caption(selected["family"])
+            st.write(selected["description"])
+            st.markdown("**Operating principle**")
+            st.info(selected["principle"])
+            left, right = st.columns(2)
+            with left:
+                st.markdown("**Common applications**")
+                for value in selected["uses"]:
+                    st.write("• " + value)
+                st.markdown("**Selection criteria**")
+                for value in selected["selection"]:
+                    st.write("• " + value)
+            with right:
+                st.markdown("**Potential failure modes**")
+                for value in selected["failure_modes"]:
+                    st.write("• " + value)
+                st.markdown("**Verification guidance**")
+                for value in selected["verification"]:
+                    st.write("• " + value)
+            st.warning("Pin / polarity note: " + selected["pinout"])
+            checklist = selection_checklist(selected["id"])
+            checklist_text = f"Component selection checklist — {selected['name']}\n" + "\n".join(f"{i}. {line}" for i,line in enumerate(checklist,1))
+            st.download_button("Download selection checklist", checklist_text, file_name=f"{selected['id']}_selection_checklist.txt", mime="text/plain")
+            if st.button("Add component reference to Copilot context", key="r25_add_context"):
+                st.session_state["r25_component_context"] = (
+                    f"Selected reference: {selected['name']} ({selected['family']}). "
+                    f"Principle: {selected['principle']} Applications: {', '.join(selected['uses'])}. "
+                    f"Selection criteria: {'; '.join(selected['selection'])}. "
+                    f"Failure modes: {'; '.join(selected['failure_modes'])}. "
+                    f"Verification: {'; '.join(selected['verification'])}. "
+                    f"Pinout note: {selected['pinout']} "
+                    "This is generic educational information; verify the exact component datasheet."
+                )
+                st.success("Component reference added to the Copilot's context for this session.")
+        else:
+            st.info("No matching component references. Try a broader search or select All families.")
+        with st.expander("Catalogue coverage"):
+            st.markdown(catalogue_summary())
 
         st.subheader("Configure AI on the separate test deployment")
         st.markdown("""
