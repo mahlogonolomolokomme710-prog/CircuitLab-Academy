@@ -368,7 +368,7 @@ def portfolio_add(category, item):
 
 st.sidebar.title("⚡ CircuitLab Academy")
 
-st.sidebar.caption("TUT Electrical Engineering • CircuitLab Academy Release 2 preview")
+st.sidebar.caption("TUT Electrical Engineering • CircuitLab Academy Release 3 preview")
 page = st.sidebar.radio("Workspace", [
     "Engineering Command Center", "AI Engineering Copilot", "Interactive Engineering Studio", "Mission Control", "Mission Studio", "Circuit Workspace", "Circuit Simulator",
     "Prepared Circuit Library", "Guided Build", "Fault Detective", "Design Bench",
