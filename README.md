@@ -289,3 +289,24 @@ Run from the project root:
     python -m unittest discover -s tests -v
 
 Tests cover ripple frequency, capacitance estimate, load calculations, insufficient headroom warnings, optional thermal estimation, invalid inputs and report limitations.
+
+
+## Release 3.1 — Interactive Engineering Studio
+
+Release 3 begins with a local, structured circuit editor and transparent DC operating-point solver.
+
+### Included
+- Editable component network table with reference, type, terminal nodes and value.
+- Initial supported elements: ideal DC voltage sources and resistors.
+- Visual topology map generated from the entered node connections.
+- Modified nodal analysis (MNA) solver for DC node voltages and source currents.
+- Per-component voltage, current and power calculations.
+- Positive/negative voltage probe between any two solved nodes.
+- Downloadable SPICE-style operating-point netlist and Markdown analysis report.
+- Example 10 V resistive divider.
+
+### Scope and limitations
+This is not yet a drag-and-drop schematic canvas, CircuitJS bridge, or full SPICE implementation. It does not model capacitors, inductors, AC/transient behaviour, diodes, transistors, parasitics, thermal effects or physical safety. The topology drawing is a connectivity overview, not a standards-compliant schematic. Solver output is ideal-model calculation, not simulator or bench measurement. Never treat a calculated result as approval to build a physical circuit.
+
+### Release 3.1 tests
+Run `python -m unittest discover -s tests -p "test_release3*.py" -v`.
