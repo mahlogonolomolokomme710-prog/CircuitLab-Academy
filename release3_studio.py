@@ -175,7 +175,7 @@ def build_circuitjs_text(records: list[dict[str, Any]]) -> str:
             raise ValueError(f"{ref}: CircuitJS export currently supports only R and V components.")
     gx, gy = coords["0"]
     lines.append(f"g {gx} {gy} {gx} {gy + 32} 0")
-    return "\\n".join(lines) + "\\n"
+    return "\n".join(lines) + "\n"
 
 
 def build_circuitjs_url(records: list[dict[str, Any]]) -> str:
