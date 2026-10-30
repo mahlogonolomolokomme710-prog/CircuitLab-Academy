@@ -53,13 +53,11 @@ SIMULATIONS = {
 }
 
 def circuit_simulator_url(circuit_key):
-    """Return the same-origin CircuitJS URL when bundled assets exist, otherwise use hosted fallback."""
+    """Use the upstream hosted CircuitJS page to avoid Streamlit Cloud static-asset proxy failures."""
     meta = SIMULATIONS[circuit_key]
     circuit_file = PREPARED_DIR / meta["file"]
     circuit_text = circuit_file.read_text(encoding="utf-8")
     encoded = quote(circuit_text, safe="")
-    if CIRCUITJS_ENTRY.is_file():
-        return f"/app/static/circuitjs/circuitjs.html?cct={encoded}", True
     return f"https://www.falstad.com/circuit/circuitjs.html?cct={encoded}", False
 
 
@@ -660,9 +658,9 @@ elif page == "Circuit Simulator" or page == "Prepared Circuit Library":
 
     circuit_url, is_self_hosted = circuit_simulator_url(selected)
     if is_self_hosted:
-        st.success("Self-hosted CircuitJS assets detected. The simulator is being served from this app's own static folder.")
+        st.success("CircuitJS is running from the bundled simulator assets.")
     else:
-        st.warning("Self-hosted assets are not installed in this working copy yet. This session is using the hosted fallback. Install the bundled CircuitJS1 assets in `static/circuitjs/` to enable same-origin simulation.")
+        st.info("The interactive simulator is loaded from the official hosted CircuitJS service. This avoids a static-file routing issue affecting bundled assets on Streamlit Community Cloud.")
     st.subheader("Live circuit")
     st.iframe(circuit_url, height=760)
 
