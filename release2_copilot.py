@@ -8,6 +8,7 @@ import streamlit as st
 from release2_circuit_reader import parse_circuitjs
 from release2_topology import analyze_topology
 from release2_simulation import analyze_measurements, parse_measurement_csv, CSV_TEMPLATE
+from release2_diagnostics import build_diagnosis
 
 SYSTEM_PROMPT = """You are CircuitLab Academy's AI Engineering Copilot, an expert electronics and electrical engineering tutor.
 Help students understand, design, calculate, simulate, test and troubleshoot circuits. Show equations, substitutions,
@@ -104,7 +105,7 @@ def render():
     a, b = st.columns([1, 2])
     a.success("AI configured") if api_key else a.info("Local calculators ready · AI key not configured")
     b.caption(f"Model: {model} · OpenAI-compatible chat endpoint")
-    chat_tab, calc_tab, sim_tab, guide_tab = st.tabs(["Copilot conversation", "Engineering calculators", "Simulation intelligence", "Setup and limitations"])
+    chat_tab, calc_tab, sim_tab, diag_tab, guide_tab = st.tabs(["Copilot conversation", "Engineering calculators", "Simulation intelligence", "Fault diagnosis", "Setup and limitations"])
     with chat_tab:
         with st.expander("Engineering context", expanded=True):
             projects = st.session_state.get("cla_projects", [])
@@ -144,7 +145,7 @@ def render():
             if not api_key:
                 st.warning("Your question is retained in this session, but AI replies require an API key. Configure OPENAI_API_KEY in Streamlit Secrets. Calculators work without it.")
             else:
-                context = {"project": project, "circuit_description": circuit, "schematic_extraction": schematic_summary or "No schematic file uploaded.", "topology_interpretation": topology_summary or "No topology analysis available.", "simulation_comparison": st.session_state.get("r2_simulation_summary", "No simulation comparison supplied."), "student_level": level, "task": task}
+                context = {"project": project, "circuit_description": circuit, "schematic_extraction": schematic_summary or "No schematic file uploaded.", "topology_interpretation": topology_summary or "No topology analysis available.", "simulation_comparison": st.session_state.get("r2_simulation_summary", "No simulation comparison supplied."), "fault_investigation": st.session_state.get("r2_diagnosis_summary", "No fault investigation has been run."), "student_level": level, "task": task}
                 msgs = [{"role": "system", "content": SYSTEM_PROMPT + "\n\nStudent context:\n" + json.dumps(context, ensure_ascii=False)}]
                 msgs.extend(st.session_state.r2_messages[-12:])
                 payload = json.dumps({"model": model, "messages": msgs, "temperature": 0.25}).encode("utf-8")
@@ -222,6 +223,49 @@ def render():
         - Pass the comparison summary into the Copilot context when the AI service is configured.
         """)
         st.caption("This is a measurement comparison and screening aid, not a circuit solver, automatic fault diagnosis engine, or verified simulator connection.")
+
+        st.subheader("Release 2.4 — Intelligent Fault Diagnosis")
+        st.markdown("""
+        - Combines supplied simulation-comparison results, topology notes and symptom descriptions.
+        - Generates prioritized, evidence-linked checks for voltage, current, divider, series/parallel, RC and rectifier scenarios.
+        - Flags missing evidence and zero-reference measurements for review.
+        - Produces a downloadable troubleshooting report and adds it to Copilot context.
+        - Treats all outputs as investigation suggestions, never confirmed component failures.
+        """)
+
+    with diag_tab:
+        st.subheader("Evidence-led fault investigation")
+        st.write("Combine tolerance results, circuit topology notes and your observed symptoms to generate a prioritized troubleshooting checklist. This is a rule-based investigation assistant, not an automatic circuit solver.")
+        st.download_button("Download measurement CSV template", CSV_TEMPLATE, file_name="circuitlab_fault_investigation_template.csv", mime="text/csv")
+        fault_file = st.file_uploader("Upload theory-versus-simulation comparison CSV", type=["csv"], key="r24_fault_csv")
+        topology_notes = st.text_area("Circuit topology notes (optional)", placeholder="Paste the topology interpretation from the Engineering context panel, or describe the source, branches, load and component arrangement.", height=110, key="r24_topology_notes")
+        symptoms = st.text_area("What is the circuit doing?", placeholder="Example: The expected output is 5 V but the simulation shows 2.1 V. The output drops further when a load is connected.", height=100, key="r24_symptoms")
+        if st.button("Analyse evidence and build troubleshooting plan", type="primary", key="r24_run"):
+            try:
+                comparison = None
+                if fault_file is not None:
+                    rows = parse_measurement_csv(fault_file.getvalue().decode("utf-8-sig"))
+                    comparison = analyze_measurements(rows)
+                diagnosis = build_diagnosis(comparison, topology_notes, symptoms)
+                st.session_state["r2_diagnosis_summary"] = diagnosis["summary"]
+                st.session_state["r2_diagnosis_findings"] = diagnosis["findings"]
+                st.session_state["r2_diagnosis_checks"] = diagnosis["checks"]
+            except Exception as exc:
+                st.session_state["r2_diagnosis_summary"] = ""
+                st.error(f"Could not analyse the supplied evidence: {type(exc).__name__}: {exc}")
+        if st.session_state.get("r2_diagnosis_summary"):
+            findings = st.session_state.get("r2_diagnosis_findings", [])
+            checks = st.session_state.get("r2_diagnosis_checks", [])
+            st.markdown("**Evidence identified**")
+            for item in findings:
+                st.write("• " + item)
+            st.markdown("**Recommended checks — work through in order**")
+            for index, item in enumerate(checks, 1):
+                st.write(f"{index}. {item}")
+            st.download_button("Download troubleshooting report", st.session_state["r2_diagnosis_summary"], file_name="circuitlab_fault_investigation.txt", mime="text/plain")
+            st.caption("The report is also included in Copilot context when the AI API is configured. A suggested check is not proof of a fault.")
+        else:
+            st.info("No investigation has been run in this session yet.")
 
         st.subheader("Configure AI on the separate test deployment")
         st.markdown("""
