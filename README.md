@@ -115,6 +115,24 @@ Add these values to the separate Streamlit Release 2 test app's Secrets:
 
 Optional compatible-provider overrides: OPENAI_BASE_URL and OPENAI_MODEL. Do not commit secrets to GitHub. AI service usage may incur separate API charges and requires an account with API access.
 
+### Release 2.1 — Circuit-aware Copilot foundation
+
+The Copilot now accepts an exported CircuitJS/Falstad text schematic (`.txt`) and performs a first-pass extraction of:
+- Recognized component records and their raw parameter fields.
+- Component terminal coordinates.
+- Wire segments and inferred electrical nets from orthogonal wire geometry.
+- A readable extraction summary that is included in the AI conversation context when the API is configured.
+
+This is an initial circuit-awareness layer, not a full schematic interpreter or simulator. It does not inspect the live embedded canvas, guarantee that every CircuitJS element type is decoded, or provide measured voltages/currents. Connectivity inference is deliberately labelled as approximate and must be checked against CircuitJS. Crossings, special components, multi-terminal devices, switches, semiconductor pin semantics and uncommon element formats require further validation.
+
+### Safe test for the schematic reader
+1. Open the separate Release 2 test deployment.
+2. In CircuitJS, open one of the prepared examples and export/save its circuit as a text `.txt` file.
+3. Open AI Engineering Copilot and upload that file in Engineering context.
+4. Check the component count, wire count, inferred net count and extracted component details.
+5. Compare the extracted inventory and connections with the actual CircuitJS schematic.
+6. Do not treat the extraction as simulation output. The local reader can be tested without an API key; an API key is needed for the AI to discuss the extracted context.
+
 ### Current limitations
 - The Copilot does not yet read the live CircuitJS canvas or automatically extract schematic topology/component values. Students must provide circuit descriptions and simulator observations.
 - Conversation and project context remain session-based; persistent user accounts and cloud history are not included.
