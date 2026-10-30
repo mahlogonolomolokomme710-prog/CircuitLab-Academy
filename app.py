@@ -1,10 +1,65 @@
 import streamlit as st
-import streamlit.components.v1 as components
+from pathlib import Path
+from urllib.parse import quote
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, Rectangle
 from datetime import date
 
 st.set_page_config(page_title="CircuitLab Academy", page_icon="⚡", layout="wide")
+
+BASE_DIR = Path(__file__).resolve().parent
+CIRCUITJS_DIR = BASE_DIR / "static" / "circuitjs"
+CIRCUITJS_ENTRY = CIRCUITJS_DIR / "circuitjs.html"
+PREPARED_DIR = BASE_DIR / "prepared_circuits"
+
+SIMULATIONS = {
+    "1. Ohm’s law — DC resistor": {
+        "file": "ohms_law.txt",
+        "goal": "Explore V = IR using a 5 V DC source and a 1 kΩ resistor.",
+        "build": ["Inspect the source and resistor in the loaded circuit.", "Run or pause the simulation and inspect the current display.", "Change the resistor value by double-clicking it, then predict the current before observing the result."],
+        "expected": "Ideal current is about 5 mA (I = 5 V / 1,000 Ω).",
+        "topic": "Voltage, current and resistance"
+    },
+    "2. Series resistors": {
+        "file": "series_resistors.txt",
+        "goal": "Observe how resistances add in a series path.",
+        "build": ["Identify both 1 kΩ resistors in the same current path.", "Inspect the total current from the 5 V source.", "Change one resistor and compare the current with your calculation."],
+        "expected": "Equivalent resistance is 2 kΩ and ideal source current is about 2.5 mA.",
+        "topic": "Series networks"
+    },
+    "3. Parallel resistors": {
+        "file": "parallel_resistors.txt",
+        "goal": "Compare current through two parallel 1 kΩ branches.",
+        "build": ["Identify the two shared nodes across the resistor branches.", "Compare branch currents and total source current.", "Predict the equivalent resistance before changing component values."],
+        "expected": "Equivalent resistance is 500 Ω and ideal total source current is about 10 mA.",
+        "topic": "Parallel networks"
+    },
+    "4. RC charging concept": {
+        "file": "rc_charging.txt",
+        "goal": "Study a resistor-capacitor network and the time constant concept.",
+        "build": ["Identify the resistor and capacitor connected in the circuit.", "Observe the capacitor voltage behaviour in the simulator.", "Use τ = RC to calculate the time constant for the displayed values."],
+        "expected": "For 10 kΩ and 100 µF, τ = 1 second. Confirm the source waveform and capacitor response in the simulator; this prepared circuit is an introductory model.",
+        "topic": "Capacitors and transients"
+    },
+    "5. Diode half-wave rectifier": {
+        "file": "diode_rectifier.txt",
+        "goal": "Observe one-way diode conduction with a low-voltage AC source and load resistor.",
+        "build": ["Identify the AC source, diode orientation and load resistor.", "Compare input and load behaviour over positive and negative half-cycles.", "Reverse the diode in a copy of the circuit and predict what changes."],
+        "expected": "A single diode provides half-wave rectification in a simple resistive load; it is not a full-wave bridge rectifier.",
+        "topic": "Diodes and rectification"
+    },
+}
+
+def circuit_simulator_url(circuit_key):
+    """Return the same-origin CircuitJS URL when bundled assets exist, otherwise use hosted fallback."""
+    meta = SIMULATIONS[circuit_key]
+    circuit_file = PREPARED_DIR / meta["file"]
+    circuit_text = circuit_file.read_text(encoding="utf-8")
+    encoded = quote(circuit_text, safe="")
+    if CIRCUITJS_ENTRY.is_file():
+        return f"/app/static/circuitjs/circuitjs.html?cct={encoded}", True
+    return f"https://www.falstad.com/circuit/circuitjs.html?cct={encoded}", False
+
 
 st.markdown("""
 <style>
@@ -206,13 +261,13 @@ A typical regulated DC supply uses rectification to convert AC to pulsating DC, 
 """
 
 st.sidebar.title("⚡ CircuitLab Academy")
-st.sidebar.caption("TUT Electrical Engineering • Prototype v0.4")
+st.sidebar.caption("TUT Electrical Engineering • Prototype v0.5")
 page = st.sidebar.radio("Workspace", [
-    "Dashboard", "Circuit Workspace", "Circuit Simulator", "Guided Build", "Component Library",
+    "Dashboard", "Circuit Workspace", "Circuit Simulator", "Prepared Circuit Library", "Guided Build", "Component Library",
     "Calculators", "Knowledge Check", "Project Report", "Curriculum Map"
 ])
 st.sidebar.markdown("---")
-st.sidebar.caption("CircuitJS simulator is available in the Circuit Simulator workspace.")
+st.sidebar.caption("Guided circuits and simulator • v0.5 preview")
 
 if page == "Dashboard":
     st.markdown("""<div class="hero"><h1>CircuitLab Academy</h1><p>Understand the theory. Explore the schematic. Learn to build circuits.</p></div>""", unsafe_allow_html=True)
@@ -274,47 +329,44 @@ elif page == "Circuit Workspace":
     else:
         st.caption("Component values and part numbers must be selected from the project brief and verified against manufacturer datasheets.")
 
-elif page == "Circuit Simulator":
-    st.title("Interactive Circuit Simulator")
-    st.markdown("Use the live simulator together with the guided exercises. Build the circuit yourself, change values, then explain what the simulation shows.")
+elif page == "Circuit Simulator" or page == "Prepared Circuit Library":
+    if page == "Circuit Simulator":
+        st.title("Interactive Circuit Simulator")
+        st.write("Choose a prepared example, inspect the circuit, and change component values to test your predictions.")
+    else:
+        st.title("Prepared Circuit Library")
+        st.write("A starter library of editable examples for core electronics concepts. Select a circuit to load it directly into the simulator.")
+
     st.markdown('<div class="warning"><b>Learning and safety:</b> Simulation is a model, not proof that a physical design is safe. Verify component ratings and lecturer requirements. Never connect a beginner circuit directly to mains electricity.</div>', unsafe_allow_html=True)
-    exercises = {
-        "1. Ohm’s law — DC resistor": {
-            "goal": "Explore the relationship V = IR using a DC source and one resistor.",
-            "build": ["Open the simulator and choose Draw → Inputs and Sources → Voltage Source.", "Add a resistor and ground, then wire a closed loop.", "Set the source to 5 V and the resistor to 1 kΩ.", "Run the simulation and inspect the current."],
-            "expected": "Ideal current is approximately 5 mA (I = 5 V / 1,000 Ω). Real components and instruments introduce tolerances."
-        },
-        "2. Series and parallel resistors": {
-            "goal": "Compare equivalent resistance and current in series and parallel networks.",
-            "build": ["Build a 5 V source with two 1 kΩ resistors in series; note the current.", "Then place the two 1 kΩ resistors in parallel across the same 5 V source.", "Inspect current through each branch and compare total source current."],
-            "expected": "Series equivalent resistance is 2 kΩ and source current is about 2.5 mA. Parallel equivalent resistance is 500 Ω and total source current is about 10 mA."
-        },
-        "3. RC charging behaviour": {
-            "goal": "Observe how a capacitor voltage changes through a resistor after a step input.",
-            "build": ["Add a step or square-wave source, a 10 kΩ resistor, a 100 µF capacitor and ground.", "Connect the resistor in series between the source and capacitor; connect the capacitor return to ground.", "Use a slow enough source period to observe charge and discharge, and inspect the voltage waveform."],
-            "expected": "The time constant is τ = RC = 1 second for 10 kΩ and 100 µF. The waveform approaches its final value over several time constants."
-        },
-        "4. Diode rectification concept": {
-            "goal": "See how a diode conducts preferentially in one direction.",
-            "build": ["Start with a low-voltage AC source, one diode, a series current-limiting resistor and a load.", "Inspect the input and load waveforms; compare the positive and negative half-cycles.", "Do not assume a single diode is a full-wave bridge; add a bridge only after studying diode orientation."],
-            "expected": "A single diode produces half-wave rectification in a simple resistive load. Forward drop and model choice affect the output."
-        }
-    }
-    selected = st.selectbox("Choose a guided simulation", list(exercises.keys()))
-    ex = exercises[selected]
+    selected = st.selectbox("Choose a prepared circuit", list(SIMULATIONS.keys()), key="prepared_circuit_choice")
+    ex = SIMULATIONS[selected]
     st.subheader("Learning objective")
     st.write(ex["goal"])
-    st.subheader("Build it in CircuitJS1")
+    st.caption("Topic: " + ex["topic"])
+    st.subheader("Guided investigation")
     for i, step in enumerate(ex["build"], 1):
         st.markdown(f"**{i}.** {step}")
-    st.info("**Expected result:** " + ex["expected"])
-    st.subheader("Live simulator")
-    st.caption("The hosted CircuitJS1 instance requires an internet connection. The current integration embeds the hosted simulator; it is not yet self-hosted inside this project.")
-    components.iframe("https://www.falstad.com/circuit/circuitjs.html", height=760, scrolling=True)
-    st.markdown("### Basic controls")
-    st.markdown("- Use the **Draw** menu to add sources, resistors, capacitors, diodes and ground.\n- Click/drag to place and wire components. Double-click a component to edit its value.\n- Use scopes or voltage/current displays to inspect behaviour.\n- Use the simulator's own export options to save work where available.")
-    st.markdown("### Source and licence")
-    st.markdown("CircuitJS1 is available from the [official upstream GitHub repository](https://github.com/sharpie7/circuitjs1). It is distributed under the GNU General Public License (GPL), version 2 or later. Open-source does not mean copyright-free: preserve copyright and licence notices and comply with the licence when redistributing or modifying the source or compiled application.")
+    st.info("**Expected ideal result:** " + ex["expected"])
+
+    circuit_url, is_self_hosted = circuit_simulator_url(selected)
+    if is_self_hosted:
+        st.success("Self-hosted CircuitJS assets detected. The simulator is being served from this app's own static folder.")
+    else:
+        st.warning("Self-hosted assets are not installed in this working copy yet. This session is using the hosted fallback. Run `python install_circuitjs.py`, then commit the generated `static/circuitjs/` assets to GitHub to enable self-hosting in Streamlit Cloud.")
+    st.subheader("Live circuit")
+    st.iframe(circuit_url, height=760)
+
+    st.subheader("Circuit notes")
+    notes = st.text_area("Record your prediction, observations and explanation", key="circuit_notes", placeholder="Prediction → observation → explanation")
+    st.download_button("Download investigation notes", data=(f"CircuitLab Academy — {selected}\n\nObjective: {ex['goal']}\n\nExpected result: {ex['expected']}\n\nStudent notes:\n{notes}\n"), file_name=ex["file"].replace(".txt", "_notes.txt"), mime="text/plain")
+
+    with st.expander("Basic simulator controls"):
+        st.markdown("""- Click or drag components to inspect and reposition them. Double-click a component to edit its value.
+- Use the simulator's run/pause and scope controls to inspect behaviour.
+- Make a prediction before changing a value, then record what changed.
+- Save/export a copy using CircuitJS controls where available.""")
+    with st.expander("Source and licence"):
+        st.markdown("CircuitJS1 is an upstream open-source project by Paul Falstad and contributors, adapted for browser use by Iain Sharp. See the [official repository](https://github.com/sharpie7/circuitjs1). It is distributed under GPL version 2 or later. Preserve copyright/licence notices and comply with the applicable source-distribution terms when redistributing it.")
 
 elif page == "Guided Build":
     st.title("Guided build: regulated 5 V DC supply")
