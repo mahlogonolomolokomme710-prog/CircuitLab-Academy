@@ -50,9 +50,9 @@ class FaultDiagnosisTests(unittest.TestCase):
 
     def test_open_branch_is_reported_in_comparison(self):
         baseline = solve_dc_network(DIVIDER)
-        altered = solve_dc_network(inject_fault(DIVIDER, "R2", "Open component"))
+        altered = solve_dc_network(inject_fault(DIVIDER, "R1", "Open component"))
         comparison = compare_operating_points(baseline, altered)
-        row = comparison["components"].set_index("Reference").loc["R2"]
+        row = comparison["components"].set_index("Reference").loc["R1"]
         self.assertEqual(row["Status"], "Removed (open)")
 
     def test_diagnostic_steps_and_report(self):
