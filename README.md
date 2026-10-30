@@ -476,3 +476,36 @@ The tests cover fault injection, invalid fault/component combinations, value cha
 - Development branch: `release-3/interactive-engineering-studio`
 - Release 3.7 is integrated additively after Release 3.6.
 - Do not merge to `main` or alter the stable deployment until local tests, runtime preview and owner approval are complete.
+
+
+### Release 3.8 — Engineering Project Factory
+
+Release 3.8 connects the learning and analysis capabilities into a structured project-planning workflow. Students select a project template, customise its title and level, enter project-specific design inputs, review preliminary calculations, and generate a downloadable project pack.
+
+#### Included project templates
+- **Regulated low-voltage DC power supply:** requirements, rectification/filtering/regulation architecture, preliminary load estimates and a hand-off to the Release 3.5 Power Supply Studio for more detailed first-pass estimates.
+- **Automatic LDR-controlled light:** bright/dark divider calculations, sensor and switching-stage planning.
+- **RC timing and delay circuit:** time constant and selected threshold-delay calculations, with a hand-off to the Release 3.3 Dynamic Circuit Laboratory.
+- **LED indicator/current-limiting driver:** minimum resistor, next-higher E12 resistor, actual current and resistor dissipation estimates.
+- **Low-voltage DC motor PWM controller:** ideal average-voltage and first-pass power estimates with driver/protection design guidance.
+- **555 timer astable oscillator:** approximate frequency, high/low times and duty-cycle calculations.
+
+#### Generated project pack
+Each project pack contains a goal, learning outcomes, functional requirements, system block architecture, preliminary bill of materials with selection guidance, first-pass calculations, a sequenced design workflow, verification/test plan, 100-point assessment rubric, safety notes and student reflection prompts. The title and student level can be customised before export.
+
+#### Engineering scope and limitations
+These are guided educational templates, not complete circuit schematics, validated designs or construction-ready instructions. Calculations are simplified and disclose key assumptions. For example, the LDR calculation assumes the LDR is the upper divider leg; the motor PWM calculation is an ideal average-value estimate and excludes switching losses and motor dynamics; the 555 equations are approximate; and the LED resistor recommendation does not replace datasheet verification. The regulated supply template does not replace the detailed Release 3.5 estimator. Students must select exact parts from datasheets, independently verify calculations, simulate with appropriate models, and obtain instructor approval before construction.
+
+Use supervised, isolated, current-limited low-voltage equipment only. The project factory does not provide mains-side design or safety certification.
+
+#### Regression tests
+Run from the repository root:
+
+    python -m unittest discover -s tests -p "test_release3_project_factory.py" -v
+
+The tests cover template completeness, assessment rubric totals, calculation outputs, invalid inputs, custom project metadata and report sections. Execute locally and complete a Streamlit preview test before describing the release as runtime-verified.
+
+#### Safe release workflow
+- Development branch: `release-3/interactive-engineering-studio`
+- Release 3.8 is integrated additively after Release 3.7.
+- Do not merge to `main` or alter the stable deployment until local tests, runtime preview and owner approval are complete.
