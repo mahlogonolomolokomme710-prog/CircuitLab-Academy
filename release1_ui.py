@@ -4,6 +4,7 @@ workspaces remain available; this module adds a central command centre without r
 """
 from datetime import datetime
 import json
+from html import escape
 import streamlit as st
 
 
@@ -134,10 +135,10 @@ def render():
             for project in projects[:4]:
                 status = project["status"]
                 st.markdown(
-                    f'<div class="cla-project"><div class="cla-project-title">{project["name"]}</div>'
+                    f'<div class="cla-project"><div class="cla-project-title">{escape(project["name"])}</div>'
                     f'<div class="cla-project-meta">{project["id"]} &nbsp;·&nbsp; {project["project_type"]} &nbsp;·&nbsp; {project["level"]}</div>'
                     f'<div style="margin-top:10px"><span class="cla-status">{status}</span></div>'
-                    f'<div class="cla-muted" style="margin-top:9px">{project["objective"]}</div></div>',
+                    f'<div class="cla-muted" style="margin-top:9px">{escape(project["objective"])}</div></div>',
                     unsafe_allow_html=True,
                 )
                 c1, c2 = st.columns([1, 5])
