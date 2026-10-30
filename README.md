@@ -329,3 +329,24 @@ The CircuitJS bridge currently translates only ideal resistors and ideal DC volt
 ### Release 3.2 tests
 The Release 3 test module now includes checks for CircuitJS text generation, URL encoding and ground-node validation. Run:
 `python -m unittest discover -s tests -p "test_release3*.py" -v`
+
+
+## Release 3.3 — Dynamic circuit laboratory and virtual instruments
+
+Release 3.3 adds analytical first-order transient experiments alongside the DC network editor.
+
+### New capabilities
+- Ideal series RC capacitor-voltage step response, including configurable initial capacitor voltage.
+- Ideal series RL inductor-current step response, including configurable initial inductor current.
+- Calculated time constant, final response and approximate five-time-constant settling time.
+- Waveform plot with a movable time cursor and interpolated readings.
+- Virtual DMM readout for response voltage/current and series current at the cursor.
+- CSV waveform export and downloadable transient analysis report.
+- Ten dedicated regression tests for RC/RL time constants, initial/final conditions, cursor behaviour, validation and exports.
+
+### Model boundaries
+These are closed-form first-order ideal circuit models, not a general-purpose transient solver and not live CircuitJS measurements. They assume a constant ideal step source and constant component values. They omit parasitics, ESR, leakage, inductor saturation/core loss, switching effects, nonlinear semiconductor behaviour, probe loading, noise and measurement uncertainty. The virtual instruments are software readouts of calculated values, not hardware interfaces.
+
+### Release 3.3 tests
+Run:
+`python -m unittest discover -s tests -p "test_release3_transient.py" -v`
