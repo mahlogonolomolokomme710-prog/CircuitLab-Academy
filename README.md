@@ -659,3 +659,50 @@ Run from the repository root:
 The tests cover assessment bank structure, scoring, unanswered questions, feedback reports, manual completeness and manual exports. Execute tests and complete a local Streamlit preview before describing the feature as runtime-verified.
 
 Development branch: `release-4/electronics-university`. Stable `main` and the existing deployed application remain unchanged.
+
+
+### Release 4.3 — Visual Electronics Learning Engine
+
+Release 4.3 adds four interactive, parameter-driven visual demonstrations to the Electronics University.
+
+#### Current flow and voltage drops
+- A visual series-resistor circuit diagram.
+- Adjustable DC source voltage and two resistor values.
+- Calculated shared series current, individual voltage drops and resistor power.
+- Voltage-drop table, bar chart and CSV export.
+- A Kirchhoff voltage-law sum check.
+
+#### Diode behaviour
+- Diode symbol with anode/cathode labels and forward direction.
+- Adjustable junction voltage, temperature and ideality factor.
+- Ideal Shockley-equation current estimate and I–V curve.
+- Downloadable I–V data.
+
+The Shockley model omits series resistance, reverse breakdown, junction capacitance, self-heating and high-level injection. It is not a complete diode model.
+
+#### Transistor switching
+- Visual low-side switch representation.
+- Interactive ON/OFF control.
+- Adjustable supply and resistive load.
+- First-pass load current, load voltage and state display.
+
+The demonstration uses a fixed saturation-drop approximation. It does not calculate base/gate drive, switching transients, device safe operating area or heating.
+
+#### Capacitor charging
+- Adjustable source voltage, series resistance and capacitance.
+- RC time constant and capacitor/resistor voltage waveforms.
+- CSV export and 63.2% at one time constant explanation.
+
+#### Model boundaries
+These are deterministic mathematical teaching models, not live CircuitJS canvas inspection, a general-purpose SPICE engine, physical measurements or safety certification. Idealisations and omissions are shown in the interface. Component datasheets and instructor-approved laboratory procedures remain authoritative.
+
+Use only supervised, isolated, current-limited low-voltage equipment for physical experiments. De-energise before rewiring. Never connect student-built circuits directly to mains.
+
+#### Regression tests
+Run from the repository root:
+
+    python -m unittest discover -s tests -p "test_release4_visual_engine.py" -v
+
+The tests cover Ohm's law, series voltage division, diode current/curve, transistor switch states, RC waveform values, invalid inputs and report labelling. Execute tests and complete a local Streamlit preview before describing the release as runtime-verified.
+
+Development branch: `release-4/electronics-university`. Stable `main` and the existing deployed application remain unchanged.
