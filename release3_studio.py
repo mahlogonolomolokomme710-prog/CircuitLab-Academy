@@ -391,6 +391,11 @@ def render() -> None:
     from release3_tutor import render_project_tutor
     render_project_tutor()
 
+    st.divider()
+    st.markdown("## Release 4.0 · Electronics University")
+    from release4_university import render_university_hub
+    render_university_hub()
+
 
 def _to_netlist(records: list[dict[str, Any]]) -> str:
     lines = ["* CircuitLab Academy Release 3.1 — ideal DC resistor/source network"]
