@@ -706,3 +706,32 @@ Run from the repository root:
 The tests cover Ohm's law, series voltage division, diode current/curve, transistor switch states, RC waveform values, invalid inputs and report labelling. Execute tests and complete a local Streamlit preview before describing the release as runtime-verified.
 
 Development branch: `release-4/electronics-university`. Stable `main` and the existing deployed application remain unchanged.
+
+
+### Release 4.4 — Engineering Design Challenge Centre
+
+Release 4.4 adds five structured engineering design challenges that ask students to turn theory into a documented, evidence-led design.
+
+#### Challenge briefs
+- **Regulated 5 V DC supply:** requirements, rectifier/filter/regulator architecture, ripple and thermal estimates, datasheet selection and verification planning.
+- **Automatic streetlight controller:** bright/dark LDR characterisation, divider calculations, threshold selection, switching-stage justification and flicker/hysteresis investigation.
+- **Low-voltage PWM motor controller:** motor running/stall data, PWM requirements, average-voltage estimates, driver/protection selection and thermal verification.
+- **RC delay circuit:** threshold definition, derivation of the exponential response, practical R/C selection, waveform evidence and tolerance/loading discussion.
+- **555 astable oscillator:** timing derivation, RA/RB/C selection, topology and duty-cycle limitations, timer-variant datasheet checks and waveform verification.
+
+#### Student design workspace
+Each challenge includes a scenario, measurable requirements, design constraints, milestones, deliverables and a weighted 100-point rubric. Students can organise evidence under each rubric criterion, record a reflection, mark evidence categories as reviewed and export a Markdown submission pack. A separate challenge brief can also be downloaded.
+
+#### Evidence indicator and limitations
+The displayed percentage is a **self-reported evidence-completeness indicator only**. It awards the rubric weight of categories the student marks complete; it does not assess technical correctness, independently verify calculations or datasheets, grade academic work, or approve safety. Submission data is session-based; students must download their work before leaving the app. There are no student accounts, persistent records, institutional submission links or lecturer gradebook integration.
+
+The challenge templates are educational starting points, not official TUT assessments or complete module specifications. Instructors should adapt and approve briefs, rubrics and practical work for the relevant module. Use only instructor-approved, supervised, isolated and current-limited low-voltage equipment. Never connect student-built circuits directly to mains. Verify equations, exact manufacturer datasheets and simulation assumptions.
+
+#### Regression tests
+Run from the repository root:
+
+    python -m unittest discover -s tests -p "test_release4_challenges.py" -v
+
+The tests cover challenge completeness, rubric totals, evidence-completion behaviour, unknown challenge handling and submission-pack content. Execute tests and complete a local Streamlit preview before describing Release 4.4 as runtime-verified.
+
+Development branch: \`release-4/electronics-university\`. Stable \`main\` and the existing deployed application remain unchanged.
