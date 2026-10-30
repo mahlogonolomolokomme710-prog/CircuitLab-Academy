@@ -87,9 +87,9 @@ CLASSROOMS: dict[str, dict[str, Any]] = {
 def divider_result(vin: float, r1: float, r2: float, load: float | None = None) -> dict[str, float]:
     if not all(math.isfinite(x) for x in (vin, r1, r2)) or vin < 0 or r1 <= 0 or r2 <= 0:
         raise ValueError("Use finite values, non-negative Vin and positive resistor values.")
-    lower = r2 if load is None else r2 * load / (r2 + load)
     if load is not None and (not math.isfinite(load) or load <= 0):
         raise ValueError("Load resistance must be positive.")
+    lower = r2 if load is None else r2 * load / (r2 + load)
     current = vin / (r1 + lower)
     return {"unloaded_v": vin * r2 / (r1 + r2), "loaded_v": current * lower,
             "series_current_a": current, "lower_equivalent_ohm": lower,
