@@ -214,9 +214,15 @@ def render() -> None:
         c1, c2 = st.columns(2)
         if c1.button("Load example voltage divider", key="r3_example"):
             st.session_state.r3_network = pd.DataFrame(STARTER, columns=COLUMNS)
+            st.session_state.pop("r3_network_editor", None)
+            st.session_state.pop("r3_result", None)
+            st.session_state.pop("r3_error", None)
             st.rerun()
         if c2.button("Clear circuit", key="r3_clear"):
             st.session_state.r3_network = pd.DataFrame(columns=COLUMNS)
+            st.session_state.pop("r3_network_editor", None)
+            st.session_state.pop("r3_result", None)
+            st.session_state.pop("r3_error", None)
             st.rerun()
         st.subheader("2 · Circuit topology")
         fig = _draw_network(edited.to_dict("records"))
