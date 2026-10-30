@@ -350,3 +350,35 @@ These are closed-form first-order ideal circuit models, not a general-purpose tr
 ### Release 3.3 tests
 Run:
 `python -m unittest discover -s tests -p "test_release3_transient.py" -v`
+
+
+## Release 3.4 — Semiconductor and rectifier laboratory
+
+Release 3.4 adds three educational workbenches to the Interactive Engineering Studio.
+
+### Diode characteristics
+- Interactive ideal Shockley diode I–V curve.
+- Adjustable saturation current, ideality factor and temperature.
+- Voltage probe for calculated diode current.
+- Explicit exclusion of series resistance, reverse breakdown, junction capacitance and self-heating.
+
+### LED series-resistor design
+- Supply voltage, assumed LED forward voltage and target current inputs.
+- Minimum series resistance calculation.
+- Suggested E12 resistor rounded upward so the nominal calculated current does not exceed the target.
+- Estimated LED current and resistor dissipation.
+- Suggested resistor power rating with a 2x design margin; verify the exact LED and resistor datasheets.
+
+### Rectifier and smoothing-capacitor estimator
+- Half-wave and full-wave bridge configurations.
+- Transformer secondary RMS voltage, 50/60 Hz frequency, load current, capacitance and assumed diode-drop inputs.
+- Peak voltage after assumed diode drops, ripple frequency, estimated ripple, valley and average output.
+- Approximate capacitor-discharge waveform, CSV export and design-note report.
+- Uses the first-order estimate ΔV ≈ I/(f_ripple C); full-wave bridge ripple frequency is twice the AC frequency.
+
+### Model and safety boundaries
+These are educational first-pass models, not a general semiconductor SPICE model or a validated power-supply design. The Shockley curve omits series resistance, reverse breakdown and thermal effects. Rectifier estimates omit transformer regulation/resistance, diode dynamics/heating, capacitor ESR and ripple-current rating, inrush, mains variation, regulator behaviour and load transients. The waveform is an approximate capacitor-discharge ramp, not a simulated diode conduction waveform. Verify component datasheets and supervise experiments using isolated low-voltage AC only; never connect student circuits directly to mains.
+
+### Release 3.4 tests
+Eleven regression tests cover Shockley current direction, diode curve output, LED resistor sizing, bridge ripple frequency, diode-drop accounting, capacitance/ripple relationship, waveform/report generation and input validation. They have been added but not executed. Run:
+`python -m unittest discover -s tests -p "test_release3_semiconductors.py" -v`
