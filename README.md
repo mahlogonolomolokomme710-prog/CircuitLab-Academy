@@ -251,3 +251,41 @@ Run from the project root:
     python -m unittest discover -s tests -v
 
 Tests cover catalogue integrity, keyword search, family filtering, profile completeness, unknown identifiers, checklist generation and summary generation.
+
+
+### Release 2.6 — Engineering Design Assistant
+
+Release 2.6 adds a first-pass design workflow for a low-voltage regulated DC supply using an isolated AC source, full-wave bridge rectifier, smoothing capacitor and linear regulator.
+
+#### Design inputs
+- Isolated secondary RMS voltage and AC frequency.
+- Target DC output voltage and maximum load current.
+- Target peak-to-peak ripple.
+- Assumed diode forward drop and regulator dropout.
+- Ambient temperature and optional user-supplied regulator thermal resistance.
+
+#### Calculations
+- Secondary peak and estimated rectified peak after two diode drops.
+- Full-wave ripple frequency.
+- First-order minimum smoothing capacitance using C ≈ I/(fripple × Vripple).
+- Estimated ripple-valley and average unregulated voltage.
+- Regulator input headroom against the stated dropout assumption.
+- Approximate regulator dissipation.
+- Equivalent load resistance and load power.
+- Optional indicative junction temperature using the thermal resistance entered by the user.
+
+#### Outputs
+- Headroom screening status and engineering warnings.
+- Component selection and exact-datasheet verification checklist.
+- Validation sequence and downloadable Markdown preliminary design report.
+- Optional session-only transfer of the design summary into Copilot context.
+
+#### Engineering limitations
+This is a first-pass educational calculation, not a SPICE solver, transformer-sizing tool, certified design or safety approval. It does not model transformer regulation/winding resistance, mains variation, diode dynamics, capacitor ESR/ripple heating/inrush, regulator stability, load transients or real thermal paths. It does not select exact manufacturer part numbers or certify component ratings. Students must verify all limits using the exact component datasheets and recalculate worst-case conditions. Any physical prototype must follow approved laboratory procedures and use a suitable isolated, current-limited low-voltage source. Never connect a beginner circuit directly to mains electricity.
+
+#### Release 2.6 regression tests
+Run from the project root:
+
+    python -m unittest discover -s tests -v
+
+Tests cover ripple frequency, capacitance estimate, load calculations, insufficient headroom warnings, optional thermal estimation, invalid inputs and report limitations.
