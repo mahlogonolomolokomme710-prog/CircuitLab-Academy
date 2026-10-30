@@ -114,4 +114,4 @@ def analyze_topology(parsed):
     lines.extend(f"- {item}" for item in findings)
     lines.append("Interpretation limits:")
     lines.extend(f"- {item}" for item in warnings)
-    return {"findings": findings, "warnings": warnings, "summary": "\\n".join(lines)}
+    return {"findings": findings, "warnings": warnings, "summary": "\n".join(lines)}
