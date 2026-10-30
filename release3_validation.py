@@ -118,7 +118,10 @@ def validate_component_ratings(
     for component in solved_components:
         ref = str(component.get("Reference", "")).strip()
         rating = by_ref.get(ref)
-        if not rating:
+        if not rating or all(
+            rating.get(field) is None or pd.isna(rating.get(field)) or rating.get(field) == ""
+            for field in ("Max voltage (V)", "Max current (A)", "Max power (W)")
+        ):
             findings.append({"level": "info", "code": "RATING_MISSING",
                              "message": f"{ref}: component ratings not supplied",
                              "detail": "Enter datasheet maximum voltage, current and power where applicable; no rating compliance conclusion is possible."})
@@ -232,9 +235,22 @@ def render_design_validator() -> None:
         structural = validate_netlist(records)
         _render_findings(structural)
         solved = st.session_state.get("r3_result")
-        solved_refs = {str(x.get("Reference", "")) for x in solved.get("components", [])} if solved else set()
-        current_refs = {str(x.get("Ref", "")) for x in records}
-        if solved and solved_refs == current_refs:
+        solved_netlist = solved.get("netlist", []) if solved else []
+        current_netlist = []
+        for row in records:
+            try:
+                current_netlist.append({
+                    "Ref": str(row.get("Ref", "")).strip(),
+                    "Type": str(row.get("Type", "")).strip().upper(),
+                    "Node1": str(row.get("Node1", "")).strip(),
+                    "Node2": str(row.get("Node2", "")).strip(),
+                    "Value": float(row.get("Value")),
+                })
+            except (TypeError, ValueError):
+                current_netlist.append({})
+        # Require an exact match so stale operating-point results are never applied
+        # to a circuit that has since changed values, nodes or component types.
+        if solved and solved_netlist == current_netlist:
             st.markdown("#### B · Component operating-point ratings")
             st.caption("Enter maximum ratings from the exact datasheets. Leave unknown fields blank; blank limits are not checked.")
             defaults = pd.DataFrame([
