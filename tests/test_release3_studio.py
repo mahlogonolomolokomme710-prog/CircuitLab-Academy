@@ -1,6 +1,6 @@
 import unittest
 
-from release3_studio import solve_dc_network, _to_netlist
+from release3_studio import solve_dc_network, _to_netlist, build_circuitjs_text, build_circuitjs_url
 
 
 class Release3SolverTests(unittest.TestCase):
@@ -47,6 +47,29 @@ class Release3SolverTests(unittest.TestCase):
         net = _to_netlist([{"Ref":"V1","Type":"V","Node1":"N1","Node2":"0","Value":5}])
         self.assertIn("V1 N1 0 5", net)
         self.assertIn(".op", net)
+
+    def test_circuitjs_export_contains_voltage_source_resistor_and_ground(self):
+        circuit = build_circuitjs_text([
+            {"Ref":"V1","Type":"V","Node1":"N1","Node2":"0","Value":5},
+            {"Ref":"R1","Type":"R","Node1":"N1","Node2":"0","Value":1000},
+        ])
+        self.assertTrue(circuit.startswith("$ 1 "))
+        self.assertIn("v ", circuit)
+        self.assertIn("r ", circuit)
+        self.assertIn("g ", circuit)
+        self.assertTrue(circuit.endswith("\\n"))
+
+    def test_circuitjs_url_encodes_circuit(self):
+        url = build_circuitjs_url([
+            {"Ref":"V1","Type":"V","Node1":"N1","Node2":"0","Value":5},
+            {"Ref":"R1","Type":"R","Node1":"N1","Node2":"0","Value":1000},
+        ])
+        self.assertTrue(url.startswith("https://www.falstad.com/circuit/circuitjs.html?cct="))
+        self.assertIn("%24", url)
+
+    def test_circuitjs_export_requires_ground(self):
+        with self.assertRaisesRegex(ValueError, "ground"):
+            build_circuitjs_text([{"Ref":"R1","Type":"R","Node1":"A","Node2":"B","Value":1000}])
 
 
 if __name__ == "__main__":
