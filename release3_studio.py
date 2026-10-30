@@ -376,6 +376,11 @@ def render() -> None:
     from release3_validation import render_design_validator
     render_design_validator()
 
+    st.divider()
+    st.markdown("## Release 3.7 · Fault Detective")
+    from release3_fault_diagnosis import render_fault_lab
+    render_fault_lab(solve_dc_network)
+
 
 def _to_netlist(records: list[dict[str, Any]]) -> str:
     lines = ["* CircuitLab Academy Release 3.1 — ideal DC resistor/source network"]
