@@ -3,9 +3,11 @@ from pathlib import Path
 from urllib.parse import quote
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, Rectangle
-from datetime import date
+from datetime import date, datetime
+import json
+import math
 
-st.set_page_config(page_title="CircuitLab Academy", page_icon="⚡", layout="wide")
+st.set_page_config(page_title="CircuitLab Academy — Intelligence Studio", page_icon="⚡", layout="wide")
 
 BASE_DIR = Path(__file__).resolve().parent
 CIRCUITJS_DIR = BASE_DIR / "static" / "circuitjs"
@@ -69,6 +71,12 @@ st.markdown("""
 .hero p {color:#e5f5ff;margin:0;font-size:1.05rem}
 .panel {padding:1rem;border:1px solid #d9e2ec;border-radius:12px;background:#f8fbfd}
 .warning {padding:.8rem 1rem;border-left:5px solid #e09f3e;background:#fff8e8;border-radius:8px}
+.metric-card {padding:1rem 1.1rem;border:1px solid #d7e2ea;border-radius:14px;background:linear-gradient(145deg,#ffffff,#f2f7fa);min-height:108px}
+.metric-label {font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:#526777}
+.metric-value {font-size:1.8rem;font-weight:750;color:#102a43}
+.tag {display:inline-block;padding:.2rem .55rem;border-radius:99px;background:#e5f3f8;color:#14566c;font-size:.78rem;margin:.12rem .2rem .12rem 0}
+div[data-testid="stMetric"] {background:#f6fafc;padding:.8rem;border:1px solid #e0e8ee;border-radius:12px}
+.stProgress > div > div > div > div {background:#176b87}
 </style>
 """, unsafe_allow_html=True)
 
@@ -260,14 +268,316 @@ A typical regulated DC supply uses rectification to convert AC to pulsating DC, 
 - [ ] Design reviewed against lecturer instructions and relevant safety practices.
 """
 
+# Circuit Intelligence Studio v1.0 — additive learning and engineering workflows
+if "portfolio" not in st.session_state:
+    st.session_state.portfolio = {
+        "missions": [], "faults_solved": [], "quiz_best": 0,
+        "designs": [], "journal": []
+    }
+if "mission_choice" not in st.session_state:
+    st.session_state.mission_choice = "5 V regulated DC supply"
+
+MISSION_CATALOG = {
+    "5 V regulated DC supply": {
+        "level": "Foundation → intermediate", "time": "3–5 hours",
+        "brief": "Design and investigate a low-voltage regulated DC supply for a defined load.",
+        "deliverables": ["Requirements table", "Annotated functional schematic", "Component and datasheet table",
+                        "Ripple and thermal calculations", "Simulation evidence", "Practical report"],
+        "skills": ["Rectification", "Filtering", "Regulation", "Thermal design", "Measurement"]
+    },
+    "LED current driver": {
+        "level": "Foundation", "time": "45–90 minutes",
+        "brief": "Select a current-limiting resistor for an LED and verify current and resistor dissipation.",
+        "deliverables": ["Supply and LED assumptions", "Resistor calculation", "Power-rating choice",
+                        "Simulation or measurement", "Short design justification"],
+        "skills": ["Ohm's law", "LED forward voltage", "Power rating", "Tolerance"]
+    },
+    "RC timing and pulse response": {
+        "level": "Foundation → intermediate", "time": "1–2 hours",
+        "brief": "Predict and investigate the transient response of a first-order RC network.",
+        "deliverables": ["Circuit diagram", "Time-constant calculation", "Predicted response",
+                        "Observed waveform", "Comparison and explanation"],
+        "skills": ["Capacitance", "Transient response", "Time constant", "Waveforms"]
+    },
+    "Sensor voltage interface": {
+        "level": "Intermediate", "time": "2–3 hours",
+        "brief": "Create a safe conceptual voltage-divider interface for a resistive sensor and assess loading.",
+        "deliverables": ["Input/output requirements", "Divider calculation", "Loading analysis",
+                        "Simulation", "Limitations and improvement proposal"],
+        "skills": ["Voltage dividers", "Sensor interfaces", "Input impedance", "Measurement"]
+    }
+}
+
+FAULT_CASES = {
+    "LED does not illuminate": {
+        "symptom": "The LED remains dark after the circuit is powered.",
+        "checks": ["Is the supply voltage present at the circuit input?",
+                   "Is the LED polarity correct (anode/cathode)?",
+                   "Is the series resistor connected in the same current path?",
+                   "Is the resistor value so large that current is negligible?",
+                   "Could the LED or supply be damaged?"],
+        "likely": "Common causes include reversed LED polarity, an open connection, an incorrect ground return, or a failed component.",
+        "lesson": "Trace the complete current path from source, through resistor and LED, back to the source. Measure voltage at successive nodes."
+    },
+    "Linear regulator becomes hot": {
+        "symptom": "The regulator temperature rises significantly or thermal shutdown occurs.",
+        "checks": ["What are the actual input and output voltages?",
+                   "What load current is being drawn?",
+                   "What is the estimated dissipation (Vin − Vout) × I?",
+                   "Is the package thermal resistance and heatsinking adequate?",
+                   "Is the device operating within its safe operating area?"],
+        "likely": "Excessive voltage drop multiplied by load current, insufficient thermal design, or overload may cause overheating.",
+        "lesson": "Estimate power before selecting a linear regulator. Then estimate junction temperature using the exact datasheet thermal model."
+    },
+    "RC circuit timing is incorrect": {
+        "symptom": "The capacitor voltage changes faster or slower than predicted.",
+        "checks": ["Are R and C values and units correct?",
+                   "Was τ = RC calculated in seconds?",
+                   "Is the capacitor initially charged or discharged?",
+                   "Is the source a step input as assumed?",
+                   "Are instrument or load impedances affecting the circuit?"],
+        "likely": "Unit conversion errors, component tolerances, initial conditions, and loading are frequent causes.",
+        "lesson": "For an ideal charging step, the capacitor reaches about 63.2% of its final change after one time constant."
+    },
+    "Digital input is unstable": {
+        "symptom": "A logic input changes state unpredictably when a switch or sensor is connected.",
+        "checks": ["Does the input have a defined pull-up or pull-down state?",
+                   "Is the ground reference shared?",
+                   "Is switch bounce present?",
+                   "Are long wires picking up interference?",
+                   "Does the input require filtering or hysteresis?"],
+        "likely": "A floating input, switch bounce, poor grounding, or electrical noise can produce unstable logic levels.",
+        "lesson": "Never leave a digital input floating. Choose pull resistors and filtering based on the logic family and timing requirements."
+    }
+}
+
+QUIZ_BANK = [
+    ("A 12 V ideal source is connected across 2 kΩ. What current flows?", ["0.6 mA", "6 mA", "24 mA", "60 mA"], 1,
+     "I = V/R = 12/2000 = 0.006 A = 6 mA."),
+    ("Two 1 kΩ resistors are connected in parallel. Their equivalent resistance is:", ["2 kΩ", "1 kΩ", "500 Ω", "100 Ω"], 2,
+     "For two equal resistors in parallel, Req = R/2 = 500 Ω."),
+    ("An ideal full-wave bridge rectifier supplied at 50 Hz has a ripple frequency of:", ["25 Hz", "50 Hz", "100 Hz", "200 Hz"], 2,
+     "A full-wave rectifier produces two output pulses per input cycle: 2 × 50 = 100 Hz."),
+    ("A 10 kΩ resistor and 100 µF capacitor have a time constant of:", ["0.1 s", "1 s", "10 s", "100 s"], 1,
+     "τ = RC = 10,000 × 100×10⁻⁶ = 1 second."),
+    ("A linear regulator has 9 V input, 5 V output and 100 mA load. Approximate pass-device dissipation is:", ["0.04 W", "0.4 W", "4 W", "14 W"], 1,
+     "P ≈ (9 − 5) × 0.1 = 0.4 W. Check thermal limits in the exact datasheet.")
+]
+
+def portfolio_add(category, item):
+    record = {"time": datetime.now().isoformat(timespec="minutes"), "category": category, "item": item}
+    st.session_state.portfolio["journal"].append(record)
+
 st.sidebar.title("⚡ CircuitLab Academy")
-st.sidebar.caption("TUT Electrical Engineering • Prototype v0.5")
+
+st.sidebar.caption("TUT Electrical Engineering • Circuit Intelligence Studio v1.0")
 page = st.sidebar.radio("Workspace", [
-    "Dashboard", "Circuit Workspace", "Circuit Simulator", "Prepared Circuit Library", "Guided Build", "Component Library",
-    "Calculators", "Knowledge Check", "Project Report", "Curriculum Map"
+    "Mission Control", "Mission Studio", "Circuit Workspace", "Circuit Simulator",
+    "Prepared Circuit Library", "Guided Build", "Fault Detective", "Design Bench",
+    "Component Library", "Skill Arena", "Engineering Portfolio", "Calculators",
+    "Knowledge Check", "Project Report", "Curriculum Map"
 ])
 st.sidebar.markdown("---")
-st.sidebar.caption("Guided circuits and simulator • v0.5 preview")
+st.sidebar.caption("Mission-based engineering learning • v1.0")
+
+
+if page == "Mission Control":
+    st.markdown("""<div class="hero"><h1>CircuitLab Academy</h1>
+    <p>From first principles to tested engineering decisions.</p></div>""", unsafe_allow_html=True)
+    p = st.session_state.portfolio
+    completed = len(p["missions"])
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Missions completed", completed)
+    c2.metric("Faults diagnosed", len(p["faults_solved"]))
+    c3.metric("Best quiz score", f'{p["quiz_best"]}%')
+    c4.metric("Engineering journal", len(p["journal"]))
+    st.subheader("Your engineering loop")
+    cols = st.columns(5)
+    for col, n, heading, desc in zip(cols, ["01","02","03","04","05"],
+        ["Understand","Design","Simulate","Diagnose","Defend"],
+        ["Learn the governing principles","Calculate and justify choices","Test predictions in CircuitJS","Find causes, not guesses","Communicate evidence"]):
+        with col:
+            st.markdown(f'<div class="metric-card"><div class="metric-label">STAGE {n}</div><h4>{heading}</h4><p>{desc}</p></div>', unsafe_allow_html=True)
+    st.subheader("Recommended next action")
+    st.info("Start with a short engineering mission, then test your design in the live simulator and save your reasoning to the portfolio.")
+    if st.button("Open Mission Studio", type="primary"):
+        st.session_state["mission_choice"] = "5 V regulated DC supply"
+        st.info("Choose **Mission Studio** in the workspace menu.")
+    st.subheader("Learning domains")
+    domains = [
+        ("Circuit foundations","DC networks, AC quantities, laws and measurement"),
+        ("Analogue electronics","Diodes, transistors, amplifiers, filters and feedback"),
+        ("Digital & embedded","Logic, timing, state machines, microcontrollers and interfaces"),
+        ("Power & energy","Rectification, conversion, regulation, switching and thermal design"),
+        ("Instrumentation","Sensors, signal conditioning, uncertainty and data acquisition"),
+        ("Engineering practice","Simulation, fault-finding, documentation and design verification")
+    ]
+    grid = st.columns(3)
+    for i, (name, desc) in enumerate(domains):
+        with grid[i % 3]:
+            st.markdown(f'<div class="metric-card"><h4>{name}</h4><p>{desc}</p></div>', unsafe_allow_html=True)
+    st.caption("Curriculum is a proposed learning map, not an official or verified mapping to current TUT module descriptors.")
+
+elif page == "Mission Studio":
+    st.title("Mission Studio")
+    st.write("Treat each circuit as an engineering brief—not just a diagram to copy.")
+    selected_mission = st.selectbox("Choose a mission", list(MISSION_CATALOG), key="mission_choice")
+    m = MISSION_CATALOG[selected_mission]
+    a, b = st.columns([1.3, 1])
+    with a:
+        st.subheader(selected_mission)
+        st.write(m["brief"])
+        st.markdown(f"**Level:** {m['level']}  ·  **Suggested time:** {m['time']}")
+        st.markdown("**Required evidence**")
+        for item in m["deliverables"]:
+            st.markdown(f"- {item}")
+    with b:
+        st.markdown("**Skills exercised**")
+        for skill in m["skills"]:
+            st.markdown(f'<span class="tag">{skill}</span>', unsafe_allow_html=True)
+        st.warning("A mission brief is an educational scaffold. Confirm project specifications, safe operating limits and lecturer requirements before building.")
+    st.subheader("Mission evidence log")
+    evidence = st.text_area("Record your design decisions, assumptions, calculations and evidence", key="mission_evidence",
+                            placeholder="Requirement → assumption → calculation → simulation/measurement → conclusion")
+    if st.button("Save mission to engineering portfolio", type="primary"):
+        entry = {"mission": selected_mission, "evidence": evidence.strip(), "status": "Completed / evidence submitted"}
+        if not any(x.get("mission") == selected_mission for x in st.session_state.portfolio["missions"]):
+            st.session_state.portfolio["missions"].append(entry)
+        else:
+            st.session_state.portfolio["missions"] = [entry if x.get("mission") == selected_mission else x for x in st.session_state.portfolio["missions"]]
+        portfolio_add("Mission", selected_mission)
+        st.success("Mission evidence saved in this session. Export your portfolio to keep a copy.")
+
+elif page == "Fault Detective":
+    st.title("Fault Detective")
+    st.write("Practise systematic fault isolation. Start with symptoms, gather evidence, and justify the most likely cause.")
+    case = st.selectbox("Select a fault case", list(FAULT_CASES))
+    f = FAULT_CASES[case]
+    st.markdown(f'<div class="metric-card"><div class="metric-label">FAULT REPORT</div><h3>{case}</h3><p>{f["symptom"]}</p></div>', unsafe_allow_html=True)
+    st.subheader("Diagnostic sequence")
+    checked = []
+    for i, check in enumerate(f["checks"]):
+        checked.append(st.checkbox(check, key=f"fault_{case}_{i}"))
+    diagnosis = st.text_area("Your diagnosis: what is most likely wrong, and what evidence would confirm it?", key="diagnosis_"+case)
+    with st.expander("Reveal engineering reasoning"):
+        st.markdown("**Likely causes:** " + f["likely"])
+        st.markdown("**Engineering lesson:** " + f["lesson"])
+    if st.button("Log this diagnosis", type="primary"):
+        if diagnosis.strip():
+            if case not in st.session_state.portfolio["faults_solved"]:
+                st.session_state.portfolio["faults_solved"].append(case)
+            portfolio_add("Fault diagnosis", case + ": " + diagnosis.strip())
+            st.success("Diagnosis saved to your portfolio.")
+        else:
+            st.warning("Write a short diagnosis before logging it.")
+    st.caption(f"Checks reviewed: {sum(checked)}/{len(checked)}. In real troubleshooting, isolate power where appropriate and follow lab safety procedures.")
+
+elif page == "Design Bench":
+    st.title("Design Bench")
+    st.write("Fast first-pass calculations with assumptions visible. These tools support—not replace—datasheet checks and full design verification.")
+    tool = st.selectbox("Choose a design tool", ["LED series resistor", "Voltage divider", "RC time constant",
+                                                  "Regulator thermal estimate", "Full-wave smoothing capacitor"])
+    if tool == "LED series resistor":
+        x, y, z = st.columns(3)
+        vs = x.number_input("Supply voltage (V)", min_value=0.1, value=5.0, step=.5)
+        vf = y.number_input("LED forward voltage (V)", min_value=0.0, value=2.0, step=.1)
+        current_ma = z.number_input("Target LED current (mA)", min_value=0.1, value=10.0, step=1.0)
+        if vs > vf and current_ma > 0:
+            resistance = (vs-vf)/(current_ma/1000)
+            power = (vs-vf)**2/resistance
+            st.metric("Calculated series resistance", f"{resistance:,.0f} Ω")
+            st.metric("Resistor dissipation", f"{power:.3f} W")
+            st.info(f"Choose a suitable standard value and verify actual LED current using its datasheet and resistor tolerance. A nominal rating above {power:.3f} W is required; apply appropriate derating.")
+        else:
+            st.error("Supply voltage must exceed LED forward voltage.")
+    elif tool == "Voltage divider":
+        vin = st.number_input("Input voltage (V)", min_value=0.0, value=12.0, step=.5)
+        rtop = st.number_input("Upper resistor R1 (Ω)", min_value=1.0, value=10000.0, step=1000.0)
+        rbottom = st.number_input("Lower resistor R2 (Ω)", min_value=1.0, value=10000.0, step=1000.0)
+        vout = vin * rbottom/(rtop+rbottom)
+        st.metric("Ideal unloaded output", f"{vout:.3f} V")
+        st.metric("Divider current", f"{vin/(rtop+rbottom)*1000:.3f} mA")
+        st.caption("This is an unloaded divider. A connected load changes the output; include input impedance and resistor power in a real design.")
+    elif tool == "RC time constant":
+        r = st.number_input("Resistance (Ω)", min_value=1.0, value=10000.0, step=1000.0)
+        c = st.number_input("Capacitance (µF)", min_value=.001, value=100.0, step=10.0)
+        tau = r*c*1e-6
+        st.metric("Time constant τ = RC", f"{tau:.4g} s")
+        st.metric("Approx. 63.2% response time", f"{tau:.4g} s")
+        st.metric("Approx. 99.3% response (5τ)", f"{5*tau:.4g} s")
+    elif tool == "Regulator thermal estimate":
+        vin = st.number_input("Regulator input voltage (V)", min_value=0.0, value=9.0, step=.5)
+        vout = st.number_input("Regulator output voltage (V)", min_value=0.0, value=5.0, step=.5)
+        amps = st.number_input("Load current (mA)", min_value=0.0, value=100.0, step=10.0)/1000
+        theta = st.number_input("Junction-to-ambient thermal resistance θJA (°C/W)", min_value=0.1, value=50.0, step=5.0)
+        ambient = st.number_input("Ambient temperature (°C)", value=25.0, step=5.0)
+        if vin >= vout:
+            diss = (vin-vout)*amps
+            tj = ambient+diss*theta
+            st.metric("Estimated pass-device dissipation", f"{diss:.3f} W")
+            st.metric("Simplified junction temperature", f"{tj:.1f} °C")
+            st.caption("Illustrative steady-state estimate only. Use the exact device datasheet, board copper, heatsink, transient conditions and safe operating area. θJA is layout-dependent.")
+        else:
+            st.error("For this simple linear-regulator estimate, input voltage must be at least output voltage.")
+    else:
+        current = st.number_input("Load current (mA)", min_value=1.0, value=100.0, step=10.0)/1000
+        freq = st.selectbox("AC line frequency (Hz)", [50, 60])
+        vripple = st.number_input("Target ripple (V peak-to-peak)", min_value=.01, value=1.0, step=.1)
+        c_est = current/(2*freq*vripple)
+        st.metric("First-order capacitance estimate", f"{c_est*1e6:,.0f} µF")
+        st.caption("Assumes full-wave rectification and approximately constant load current. Does not check transformer regulation, diode drops, capacitor ESR/ripple rating, inrush, regulator headroom or thermal limits.")
+    if st.button("Save current design calculation to portfolio"):
+        portfolio_add("Design calculation", f"{tool}: calculation performed; record the displayed assumptions and result in your report.")
+        st.success("Calculation event saved to your session portfolio.")
+
+elif page == "Skill Arena":
+    st.title("Skill Arena")
+    st.write("Short engineering challenges with worked explanations. Attempt the questions before opening the reasoning.")
+    with st.form("skill_arena_form"):
+        answers = []
+        for i, (question, options, correct, explanation) in enumerate(QUIZ_BANK):
+            answers.append(st.radio(f"{i+1}. {question}", options, key=f"arena_{i}"))
+        submitted = st.form_submit_button("Submit challenge", type="primary")
+    if submitted:
+        score = sum(answers[i] == QUIZ_BANK[i][1][QUIZ_BANK[i][2]] for i in range(len(QUIZ_BANK)))
+        pct = round(score/len(QUIZ_BANK)*100)
+        st.session_state.portfolio["quiz_best"] = max(st.session_state.portfolio["quiz_best"], pct)
+        st.metric("Challenge score", f"{score}/{len(QUIZ_BANK)} ({pct}%)")
+        for i, (_, options, correct, explanation) in enumerate(QUIZ_BANK):
+            st.markdown(f"**Question {i+1}: {'Correct' if answers[i] == options[correct] else 'Review'}** — {explanation}")
+        portfolio_add("Skill Arena", f"{score}/{len(QUIZ_BANK)} ({pct}%)")
+        if pct == 100:
+            st.success("Excellent. You demonstrated mastery of this challenge set.")
+        else:
+            st.info("Review the explanations and retry to improve your best score.")
+
+elif page == "Engineering Portfolio":
+    st.title("Engineering Portfolio")
+    st.write("A portable record of missions, diagnoses, quiz performance and learning activity.")
+    p = st.session_state.portfolio
+    a,b,c = st.columns(3)
+    a.metric("Missions", len(p["missions"]))
+    b.metric("Diagnoses", len(p["faults_solved"]))
+    c.metric("Journal entries", len(p["journal"]))
+    st.subheader("Mission evidence")
+    if p["missions"]:
+        for item in p["missions"]:
+            with st.expander(item["mission"]):
+                st.write(item.get("evidence") or "No written evidence added.")
+    else:
+        st.info("Complete a mission in Mission Studio to populate this portfolio.")
+    st.subheader("Fault diagnoses")
+    st.write(", ".join(p["faults_solved"]) if p["faults_solved"] else "No diagnoses logged yet.")
+    st.subheader("Activity journal")
+    if p["journal"]:
+        st.dataframe(p["journal"], use_container_width=True, hide_index=True)
+    else:
+        st.caption("Your activity will appear here.")
+    payload = {"application": "CircuitLab Academy", "version": "1.0", "exported_at": datetime.now().isoformat(),
+               "portfolio": p}
+    st.download_button("Export complete portfolio (JSON)", json.dumps(payload, indent=2, ensure_ascii=False),
+                       file_name="circuitlab_engineering_portfolio.json", mime="application/json", type="primary")
+    st.caption("This prototype stores progress in the current Streamlit session. Export regularly; accounts and cloud-synced persistence are not implemented yet.")
 
 if page == "Dashboard":
     st.markdown("""<div class="hero"><h1>CircuitLab Academy</h1><p>Understand the theory. Explore the schematic. Learn to build circuits.</p></div>""", unsafe_allow_html=True)
@@ -352,7 +662,7 @@ elif page == "Circuit Simulator" or page == "Prepared Circuit Library":
     if is_self_hosted:
         st.success("Self-hosted CircuitJS assets detected. The simulator is being served from this app's own static folder.")
     else:
-        st.warning("Self-hosted assets are not installed in this working copy yet. This session is using the hosted fallback. Run `python install_circuitjs.py`, then commit the generated `static/circuitjs/` assets to GitHub to enable self-hosting in Streamlit Cloud.")
+        st.warning("Self-hosted assets are not installed in this working copy yet. This session is using the hosted fallback. Install the bundled CircuitJS1 assets in `static/circuitjs/` to enable same-origin simulation.")
     st.subheader("Live circuit")
     st.iframe(circuit_url, height=760)
 
@@ -492,4 +802,4 @@ elif page == "Curriculum Map":
     st.markdown("- Have a subject specialist review calculations, schematics and safety guidance.")
 
 st.sidebar.markdown("---")
-st.sidebar.caption("Prototype name. Verify all physical designs against datasheets, lecturer instructions and appropriate safety practices.")
+st.sidebar.caption("Circuit Intelligence Studio v1.0 • Verify physical designs against exact datasheets, lecturer instructions and laboratory safety rules.")
