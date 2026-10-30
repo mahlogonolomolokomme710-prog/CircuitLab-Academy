@@ -370,7 +370,7 @@ st.sidebar.title("⚡ CircuitLab Academy")
 
 st.sidebar.caption("TUT Electrical Engineering • CircuitLab Academy Release 2 preview")
 page = st.sidebar.radio("Workspace", [
-    "Engineering Command Center", "AI Engineering Copilot", "Mission Control", "Mission Studio", "Circuit Workspace", "Circuit Simulator",
+    "Engineering Command Center", "AI Engineering Copilot", "Interactive Engineering Studio", "Mission Control", "Mission Studio", "Circuit Workspace", "Circuit Simulator",
     "Prepared Circuit Library", "Guided Build", "Fault Detective", "Design Bench",
     "Component Library", "Skill Arena", "Engineering Portfolio", "Calculators",
     "Knowledge Check", "Project Report", "Curriculum Map"
@@ -386,6 +386,10 @@ if page == "Engineering Command Center":
 elif page == "AI Engineering Copilot":
     from release2_copilot import render as render_ai_engineering_copilot
     render_ai_engineering_copilot()
+
+elif page == "Interactive Engineering Studio":
+    from release3_studio import render as render_interactive_engineering_studio
+    render_interactive_engineering_studio()
 
 if page == "Mission Control":
     st.markdown("""<div class="hero"><h1>CircuitLab Academy</h1>
