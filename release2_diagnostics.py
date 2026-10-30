@@ -42,7 +42,7 @@ def build_diagnosis(comparison, topology_summary="", symptoms=""):
                 checks.append("For the current discrepancy, verify the current probe is in series, check the load path for an open/short, and recalculate current from the actual voltage across the load and its resistance.")
             if any(token in name for token in ("ripple", "peak", "ac")):
                 checks.append("For ripple or AC discrepancies, confirm the waveform measurement mode, time base, peak-to-peak definition, rectifier configuration and smoothing-capacitor value.")
-    else:
+    elif results:
         evidence.append("No measurement was classified outside the supplied tolerance.")
     if review:
         evidence.append(f"{len(review)} measurement(s) require review because a percentage comparison was not defined or evidence was incomplete.")
