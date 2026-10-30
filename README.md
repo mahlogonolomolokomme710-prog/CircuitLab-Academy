@@ -133,6 +133,28 @@ This is an initial circuit-awareness layer, not a full schematic interpreter or 
 5. Compare the extracted inventory and connections with the actual CircuitJS schematic.
 6. Do not treat the extraction as simulation output. The local reader can be tested without an API key; an API key is needed for the AI to discuss the extracted context.
 
+### Release 2.2 — Circuit Understanding
+
+Release 2.2 adds a heuristic topology interpretation layer on top of the Release 2.1 CircuitJS text reader.
+
+Recognized candidate patterns include:
+- Resistor pairs sharing the same two inferred nets (possible parallel resistors).
+- Resistors meeting at a node with no third resistor branch (possible series relationship in the resistor-only subgraph).
+- A two-resistor voltage-divider candidate when the inferred graph also matches a voltage-source/ground path.
+- Resistor-capacitor shared-node relationships (RC network candidate).
+- Diode networks and possible bridge-rectifier candidates.
+- LC networks and transistor-device presence, with explicit limitations.
+
+The topology summary is displayed separately from the raw extraction and is also passed to the AI Copilot as context. The Copilot is instructed to describe these as candidates, explain the evidence and identify what must be verified. The analysis does not solve the circuit or provide simulation measurements.
+
+### Release 2.2 regression tests
+
+A small Python unittest suite covers the prepared-style series/voltage-divider, parallel-resistor and RC examples, plus the requirement that interpretation carries a caution. Run from the project root:
+
+    python -m unittest discover -s tests -v
+
+Review each detected topology against the actual CircuitJS drawing. In particular, series relationships are evaluated in the resistor-only subgraph; another component attached to a shared node can materially change circuit behaviour. Diode bridge recognition is only a candidate based on device count until diode orientation and full connectivity are interpreted.
+
 ### Current limitations
 - The Copilot does not yet read the live CircuitJS canvas or automatically extract schematic topology/component values. Students must provide circuit descriptions and simulator observations.
 - Conversation and project context remain session-based; persistent user accounts and cloud history are not included.
