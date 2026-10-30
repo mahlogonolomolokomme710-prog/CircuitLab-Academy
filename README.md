@@ -587,3 +587,37 @@ The tests cover lesson completeness, component reference structure, search, expo
 - Development branch: `release-4/electronics-university`
 - Release 4.0 is integrated after Release 3.9 in the development Studio.
 - Do not merge to `main` or alter the stable deployment until tests, local preview and owner approval are complete.
+
+
+### Release 4.1 — Interactive Electronics Classroom
+
+Release 4.1 adds a guided classroom layer alongside the Release 4.0 Electronics University content.
+
+#### Guided classrooms
+- Ohm's law: from prediction to measurement.
+- Voltage divider: calculate and investigate loading.
+- RC charging: read the transient waveform.
+- Kirchhoff's laws: reason about a network.
+
+Each classroom includes a learning goal, sequenced instructional steps, key equations, an activity and a knowledge check with worked feedback.
+
+#### Interactive experiments
+- Live Ohm's-law current and power calculator.
+- Loaded/unloaded voltage-divider calculator.
+- Ideal RC charging waveform with adjustable resistance, capacitance and supply voltage; waveform CSV export.
+- KCL node-current investigation.
+
+#### Knowledge checks
+Students can select Foundation, Intermediate or Advanced difficulty where questions are available. Each answer can be checked for immediate explanatory feedback. Progress and answer feedback are session-only and are not yet saved to a student account.
+
+#### Model boundaries
+The RC curve and circuit calculations are idealised educational models. They do not represent live CircuitJS measurements, physical instruments, component tolerances, parasitics, thermal behaviour or a complete SPICE solver. The classroom is general electronics content, not an official TUT syllabus mapping.
+
+#### Regression tests
+Run from the repository root:
+
+    python -m unittest discover -s tests -p "test_release4_classroom.py" -v
+
+Complete a local Streamlit preview before describing the classroom as runtime-verified. Physical experiments require approved, supervised, isolated and current-limited low-voltage equipment. Never connect student-built circuits directly to mains.
+
+Development branch: `release-4/electronics-university`. Stable `main` and the existing deployed application remain unchanged.
