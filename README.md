@@ -198,3 +198,26 @@ Run all Release 2 tests from the project root:
     python -m unittest discover -s tests -v
 
 The tests cover CSV validation, percentage error, tolerance classification and zero-reference handling. They must be executed locally before describing the release as runtime-verified.
+
+
+### Release 2.4 — Intelligent Fault Diagnosis
+
+Release 2.4 adds an evidence-led troubleshooting workflow. Students can provide a Release 2.3 comparison CSV, paste topology interpretation notes, and describe observed symptoms. The rule-based engine produces evidence statements and a prioritized list of checks.
+
+#### Supported investigation cues
+- Out-of-tolerance output voltage and current measurements.
+- Possible voltage-divider loading or node/reference problems.
+- Series/parallel resistor topology notes.
+- RC charging/discharging and time-constant checks.
+- Diode/rectifier orientation and ripple checks.
+- Missing output/current and overheating symptoms.
+
+#### Important limits
+This is a transparent rules-based investigation aid, not a SPICE solver, autonomous diagnosis model or confirmation that a component has failed. It only reasons from student-supplied values, notes and symptoms. It does not inspect the live CircuitJS canvas or collect measurements. Heuristic topology notes must be checked against the actual circuit. For physical builds, isolate power before rewiring and use appropriate isolated, current-limited low-voltage supplies for student experiments.
+
+#### Release 2.4 regression tests
+Run from the project root:
+
+    python -m unittest discover -s tests -v
+
+Tests cover missing evidence, targeted voltage checks, voltage-divider loading, rectifier diode-orientation checks, overheating safety priority and diagnostic uncertainty.
