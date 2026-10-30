@@ -621,3 +621,41 @@ Run from the repository root:
 Complete a local Streamlit preview before describing the classroom as runtime-verified. Physical experiments require approved, supervised, isolated and current-limited low-voltage equipment. Never connect student-built circuits directly to mains.
 
 Development branch: `release-4/electronics-university`. Stable `main` and the existing deployed application remain unchanged.
+
+
+### Release 4.2 — Engineering Assessment Centre and Practical Laboratory
+
+Release 4.2 adds formative assessment and structured practical-laboratory resources to the Electronics University.
+
+#### Assessment centre
+Four topic banks provide four multiple-choice questions each:
+- DC fundamentals
+- Capacitors and transients
+- Diodes and power supplies
+- Semiconductor and transistor basics
+
+Students submit a topic assessment and receive a score, correct answers, explanations and a downloadable Markdown review. Unanswered questions receive no marks. The score is formative practice, not an accredited examination result.
+
+#### Practical laboratory manuals
+Four editable/downloadable practical templates are included:
+- Resistor network verification
+- RC charging and discharging
+- Diode rectifier investigation
+- Transistor switching investigation
+
+Each manual contains a purpose, learning outcomes, apparatus list, sequenced procedure, results-table templates, analysis prompts and safety guidance. Student name and practical date can be added to the export.
+
+#### Session learning record
+Assessment attempts are listed during the active Streamlit session, with the latest result by topic and CSV export. Data is not persisted across sessions and is not connected to an institutional student account or gradebook.
+
+#### Scope, assumptions and safety
+Assessment questions are introductory formative examples, not a complete curriculum assessment bank. Practical manuals are templates and must be reviewed and approved by a qualified instructor before use. The manuals do not certify circuit designs, component ratings, instrument setups or laboratory safety. Use only instructor-approved, isolated, current-limited low-voltage equipment; never use mains electricity for student-built experiments. Observe exact manufacturer datasheets and local laboratory procedures.
+
+#### Regression tests
+Run from the repository root:
+
+    python -m unittest discover -s tests -p "test_release4_assessment.py" -v
+
+The tests cover assessment bank structure, scoring, unanswered questions, feedback reports, manual completeness and manual exports. Execute tests and complete a local Streamlit preview before describing the feature as runtime-verified.
+
+Development branch: `release-4/electronics-university`. Stable `main` and the existing deployed application remain unchanged.
