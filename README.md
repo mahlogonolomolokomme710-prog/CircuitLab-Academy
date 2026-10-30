@@ -221,3 +221,33 @@ Run from the project root:
     python -m unittest discover -s tests -v
 
 Tests cover missing evidence, targeted voltage checks, voltage-divider loading, rectifier diode-orientation checks, overheating safety priority and diagnostic uncertainty.
+
+
+### Release 2.5 — Component Intelligence
+
+Release 2.5 adds a searchable educational component reference library in the AI Engineering Copilot.
+
+#### Initial catalogue coverage
+- Passive components: fixed resistors, aluminium electrolytic capacitors, ceramic capacitors and potentiometers.
+- Semiconductors: rectifier/signal diodes, BJTs and power MOSFETs.
+- Optoelectronics: LEDs.
+- Integrated circuits and power: operational amplifiers and linear voltage regulators.
+- Magnetics, protection and switching: inductors, fuses and electromechanical relays.
+
+#### Component reference features
+- Operating principle and common applications.
+- Design-selection criteria including electrical, thermal, dynamic and package considerations where relevant.
+- Common failure modes and verification guidance.
+- Pinout and polarity cautions.
+- Downloadable component-selection checklist.
+- Optional session-only transfer of the selected component reference into AI Copilot context.
+
+#### Specification and safety policy
+The catalogue intentionally does not assign universal numeric ratings or assume universal pinouts. These depend on the exact manufacturer part number, package, revision and operating conditions. Students must verify voltage, current, power, thermal, safe-operating-area, frequency, derating and pin configuration against the exact manufacturer's datasheet. Generic catalogue entries are educational guidance, not a component approval or substitute for laboratory review.
+
+#### Release 2.5 regression tests
+Run from the project root:
+
+    python -m unittest discover -s tests -v
+
+Tests cover catalogue integrity, keyword search, family filtering, profile completeness, unknown identifiers, checklist generation and summary generation.
