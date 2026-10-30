@@ -382,3 +382,36 @@ These are educational first-pass models, not a general semiconductor SPICE model
 ### Release 3.4 tests
 Eleven regression tests cover Shockley current direction, diode curve output, LED resistor sizing, bridge ripple frequency, diode-drop accounting, capacitance/ripple relationship, waveform/report generation and input validation. They have been added but not executed. Run:
 `python -m unittest discover -s tests -p "test_release3_semiconductors.py" -v`
+
+
+### Release 3.5 — Advanced Power Supply Design Studio
+
+Release 3.5 extends the semiconductor and rectifier laboratory into a system-level, first-pass design workflow for an isolated low-voltage AC supply.
+
+#### Capabilities
+- Define regulated output voltage, maximum load current and reservoir-ripple target.
+- Compare half-wave and full-wave bridge rectification.
+- Estimate transformer secondary current and apparent-power (VA) requirements using an adjustable current form factor.
+- Include transformer regulation and low-line allowances in a simplified worst-case estimate.
+- Calculate reservoir capacitance, ripple frequency, capacitor-discharge ripple and a separate ESR ripple estimate.
+- Screen the capacitor voltage rating against a simple margin.
+- Estimate regulator headroom, steady-state dissipation and junction temperature.
+- Estimate a heatsink thermal-resistance target from entered thermal parameters.
+- Display a functional block diagram and download a detailed Markdown design report or CSV results.
+
+#### Engineering assumptions and limitations
+This is a transparent educational estimate, not a validated or construction-ready power supply. Transformer current form factor is user-adjustable because capacitor-input rectifier RMS current depends on transformer impedance and charging conduction angle. Ripple uses a first-order constant-load-current approximation; diode loss, regulator thermal behaviour and heatsink estimates are simplified. It does not model mains-side circuitry, transformer winding waveforms, inrush, fuse selection, insulation coordination, PCB creepage/clearance, detailed semiconductor stress, or regulator safe operating area. Verify exact manufacturer datasheets and independently simulate and measure the design.
+
+Use only an appropriately isolated, current-limited low-voltage AC source for supervised student experiments. Never connect student circuits directly to mains electricity.
+
+#### Regression tests
+Run from the repository root:
+
+    python -m unittest discover -s tests -p "test_release3_power_supply.py" -v
+
+The tests cover rectifier ripple frequency, diode-drop accounting, capacitance/ripple relationships, low-line headroom, thermal calculations, report content and input validation. They must be executed locally before describing the release as runtime-verified.
+
+#### Safe release workflow
+- Development branch: `release-3/interactive-engineering-studio`
+- Release 3.5 is additive to the Release 3.4 Studio.
+- Do not merge to `main` or alter the stable deployment until local tests, runtime preview and owner approval are complete.
