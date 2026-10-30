@@ -60,6 +60,12 @@ class CircuitValidationTests(unittest.TestCase):
         findings = validate_component_ratings(solved, [{"Ref":"R1"}])
         self.assertTrue(any(x["code"] == "RATING_MISSING" for x in findings))
 
+    def test_empty_rating_row_is_reported_as_missing(self):
+        solved = [{"Reference":"R1","Voltage (V)":2.0,"Current (A)":0.01,"Power (W)":0.02}]
+        ratings = [{"Ref":"R1","Max voltage (V)":None,"Max current (A)":None,"Max power (W)":None}]
+        findings = validate_component_ratings(solved, ratings)
+        self.assertTrue(any(x["code"] == "RATING_MISSING" for x in findings))
+
     def test_power_supply_headroom_failure_is_flagged(self):
         result = design_power_supply(secondary_rms_v=6.0, output_voltage_v=5.0,
                                      regulator_dropout_v=2.0, load_current_ma=500.0)
