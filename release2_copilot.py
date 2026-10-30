@@ -5,6 +5,8 @@ import urllib.request
 
 import streamlit as st
 
+from release2_circuit_reader import parse_circuitjs
+
 SYSTEM_PROMPT = """You are CircuitLab Academy's AI Engineering Copilot, an expert electronics and electrical engineering tutor.
 Help students understand, design, calculate, simulate, test and troubleshoot circuits. Show equations, substitutions,
 units, assumptions and reasonableness checks. Ask focused questions when requirements are missing.
@@ -13,7 +15,7 @@ user-provided, simulated (only when the user supplied simulator evidence), and s
 For component selection, explain which datasheet ratings must be checked; do not fabricate exact specifications.
 For physical builds, never recommend connecting student circuits directly to mains. Prioritize isolated,
 current-limited low-voltage supplies for beginner experiments and power-off checks before rewiring.
-Do not claim to see a live schematic or simulator. Ask for circuit values, a description or observations as needed.
+Do not claim to see a live schematic or simulator. When a CircuitJS schematic extraction is supplied, use it as source evidence, state parser limitations, and do not infer unobserved simulator readings. Ask for circuit values, a description or observations when needed.
 Do not present educational assistance as a substitute for lecturer, laboratory or professional review.
 Use clear headings and complete step-by-step explanations."""
 
@@ -107,6 +109,18 @@ def render():
             labels = ["No project selected"] + [f'{p.get("name","Project")} · {p.get("id","")}' for p in projects]
             project = st.selectbox("Current project", labels, key="r2_project")
             circuit = st.text_area("Circuit description and component values", placeholder="Example: 12 V DC source, 1 kΩ resistor, red LED; target current 10 mA.", height=90, key="r2_circuit")
+            schematic_file = st.file_uploader("Upload a CircuitJS/Falstad schematic (.txt)", type=["txt"], key="r2_schematic_upload", help="In CircuitJS, export or save the circuit as text, then upload that .txt file here.")
+            schematic_summary = ""
+            if schematic_file is not None:
+                try:
+                    schematic_text = schematic_file.getvalue().decode("utf-8-sig")
+                    parsed_schematic = parse_circuitjs(schematic_text)
+                    schematic_summary = parsed_schematic["summary"]
+                    st.success(f"Schematic read: {len(parsed_schematic['components'])} components, {parsed_schematic['wire_count']} wire segments, {parsed_schematic['net_count']} inferred nets.")
+                    with st.expander("Review extracted schematic data"):
+                        st.code(schematic_summary)
+                except Exception as exc:
+                    st.error(f"Could not read this schematic file: {type(exc).__name__}: {exc}")
             level = st.selectbox("Student level", ["First-year / foundations", "Intermediate diploma", "Advanced engineering"], key="r2_level")
             task = st.selectbox("Task", ["Understand a concept", "Design a circuit", "Check a calculation", "Interpret simulation results", "Diagnose a fault", "Review a design"], key="r2_task")
         if "r2_messages" not in st.session_state:
@@ -123,7 +137,7 @@ def render():
             if not api_key:
                 st.warning("Your question is retained in this session, but AI replies require an API key. Configure OPENAI_API_KEY in Streamlit Secrets. Calculators work without it.")
             else:
-                context = {"project": project, "circuit_description": circuit, "student_level": level, "task": task}
+                context = {"project": project, "circuit_description": circuit, "schematic_extraction": schematic_summary or "No schematic file uploaded.", "student_level": level, "task": task}
                 msgs = [{"role": "system", "content": SYSTEM_PROMPT + "\n\nStudent context:\n" + json.dumps(context, ensure_ascii=False)}]
                 msgs.extend(st.session_state.r2_messages[-12:])
                 payload = json.dumps({"model": model, "messages": msgs, "temperature": 0.25}).encode("utf-8")
@@ -140,7 +154,7 @@ def render():
                 except Exception as exc:
                     st.session_state.r2_messages.append({"role": "assistant", "content": f"Could not reach the AI service: {type(exc).__name__}: {exc}"})
             st.rerun()
-        st.caption("The Copilot cannot inspect the live CircuitJS canvas yet. Paste circuit details and simulator observations here; it will not invent readings.")
+        st.caption("The Copilot cannot inspect the live CircuitJS canvas directly yet. It can now read an exported CircuitJS/Falstad .txt schematic; paste simulator observations separately because extraction does not provide verified simulation measurements.")
     with calc_tab:
         _calculators()
     with guide_tab:
@@ -150,6 +164,7 @@ def render():
         - Project-aware context using the brief and circuit details you provide.
         - Measurement-led troubleshooting and design review.
         - Interpretation of simulation results supplied by you.
+        - First-pass extraction of component records and inferred connectivity from an uploaded CircuitJS/Falstad text schematic.
         - Local calculators for Ohm's law, power, voltage dividers, RC time constants and full-wave ripple estimates.
         """)
         st.subheader("Configure AI on the separate test deployment")
