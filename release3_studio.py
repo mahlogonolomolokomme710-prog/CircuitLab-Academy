@@ -381,6 +381,11 @@ def render() -> None:
     from release3_fault_diagnosis import render_fault_lab
     render_fault_lab(solve_dc_network)
 
+    st.divider()
+    st.markdown("## Release 3.8 · Engineering Project Factory")
+    from release3_project_factory import render_project_factory
+    render_project_factory()
+
 
 def _to_netlist(records: list[dict[str, Any]]) -> str:
     lines = ["* CircuitLab Academy Release 3.1 — ideal DC resistor/source network"]
