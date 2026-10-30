@@ -10,6 +10,7 @@ from release2_topology import analyze_topology
 from release2_simulation import analyze_measurements, parse_measurement_csv, CSV_TEMPLATE
 from release2_diagnostics import build_diagnosis
 from release2_components import COMPONENTS, get_component, search_components, selection_checklist, catalogue_summary
+from release2_design import design_linear_supply, build_design_report
 
 SYSTEM_PROMPT = """You are CircuitLab Academy's AI Engineering Copilot, an expert electronics and electrical engineering tutor.
 Help students understand, design, calculate, simulate, test and troubleshoot circuits. Show equations, substitutions,
@@ -106,7 +107,7 @@ def render():
     a, b = st.columns([1, 2])
     a.success("AI configured") if api_key else a.info("Local calculators ready · AI key not configured")
     b.caption(f"Model: {model} · OpenAI-compatible chat endpoint")
-    chat_tab, calc_tab, sim_tab, diag_tab, comp_tab, guide_tab = st.tabs(["Copilot conversation", "Engineering calculators", "Simulation intelligence", "Fault diagnosis", "Component intelligence", "Setup and limitations"])
+    chat_tab, calc_tab, sim_tab, diag_tab, comp_tab, design_tab, guide_tab = st.tabs(["Copilot conversation", "Engineering calculators", "Simulation intelligence", "Fault diagnosis", "Component intelligence", "Design assistant", "Setup and limitations"])
     with chat_tab:
         with st.expander("Engineering context", expanded=True):
             projects = st.session_state.get("cla_projects", [])
@@ -146,7 +147,7 @@ def render():
             if not api_key:
                 st.warning("Your question is retained in this session, but AI replies require an API key. Configure OPENAI_API_KEY in Streamlit Secrets. Calculators work without it.")
             else:
-                context = {"project": project, "circuit_description": circuit, "schematic_extraction": schematic_summary or "No schematic file uploaded.", "topology_interpretation": topology_summary or "No topology analysis available.", "simulation_comparison": st.session_state.get("r2_simulation_summary", "No simulation comparison supplied."), "fault_investigation": st.session_state.get("r2_diagnosis_summary", "No fault investigation has been run."), "component_reference": st.session_state.get("r25_component_context", "No component reference selected."), "student_level": level, "task": task}
+                context = {"project": project, "circuit_description": circuit, "schematic_extraction": schematic_summary or "No schematic file uploaded.", "topology_interpretation": topology_summary or "No topology analysis available.", "simulation_comparison": st.session_state.get("r2_simulation_summary", "No simulation comparison supplied."), "fault_investigation": st.session_state.get("r2_diagnosis_summary", "No fault investigation has been run."), "component_reference": st.session_state.get("r25_component_context", "No component reference selected."), "preliminary_design": st.session_state.get("r26_design_summary", "No preliminary design has been generated."), "student_level": level, "task": task}
                 msgs = [{"role": "system", "content": SYSTEM_PROMPT + "\n\nStudent context:\n" + json.dumps(context, ensure_ascii=False)}]
                 msgs.extend(st.session_state.r2_messages[-12:])
                 payload = json.dumps({"model": model, "messages": msgs, "temperature": 0.25}).encode("utf-8")
@@ -203,6 +204,94 @@ def render():
             st.session_state["r2_simulation_summary"] = ""
             st.info("Upload the template after entering your own theoretical and simulated values. Example values in the template are illustrative only.")
 
+    with design_tab:
+        st.subheader("Regulated low-voltage DC supply design")
+        st.write("Create a first-pass engineering estimate for an isolated AC source, full-wave bridge, smoothing capacitor and linear regulator. Enter the design brief, generate the calculations, review the warnings and download a preliminary report.")
+        st.warning("Educational design aid only. Use an isolated low-voltage source. This workflow does not size or certify a transformer, model a regulator, run CircuitJS or approve a physical build.")
+        with st.form("r26_design_form"):
+            st.markdown("**1 · Design requirements**")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                vac = st.number_input("Isolated secondary voltage (V RMS)", min_value=0.1, value=9.0, step=0.5, key="r26_vac")
+                freq = st.selectbox("AC frequency (Hz)", [50, 60], index=0, key="r26_freq")
+            with col2:
+                vout = st.number_input("Target DC output voltage (V)", min_value=0.1, value=5.0, step=0.1, key="r26_vout")
+                current_ma = st.number_input("Maximum load current (mA)", min_value=1.0, value=100.0, step=5.0, key="r26_current")
+            with col3:
+                ripple_mv = st.number_input("Maximum target ripple (mV p-p)", min_value=1.0, value=500.0, step=25.0, key="r26_ripple")
+                dropout = st.number_input("Regulator dropout assumption (V)", min_value=0.0, value=2.0, step=0.1, key="r26_dropout")
+            st.markdown("**2 · Component and thermal assumptions**")
+            col4, col5, col6 = st.columns(3)
+            with col4:
+                diode_drop = st.number_input("Assumed forward drop per diode (V)", min_value=0.0, value=0.7, step=0.05, key="r26_diode")
+            with col5:
+                ambient = st.number_input("Ambient temperature (°C)", value=25.0, step=1.0, key="r26_ambient")
+            with col6:
+                theta = st.number_input("Regulator thermal resistance θJA (°C/W; 0 = not supplied)", min_value=0.0, value=0.0, step=1.0, key="r26_theta")
+            submitted = st.form_submit_button("Generate preliminary design", type="primary")
+        if submitted:
+            try:
+                result = design_linear_supply(
+                    secondary_vac_rms=vac,
+                    mains_frequency_hz=float(freq),
+                    output_voltage_v=vout,
+                    maximum_load_current_a=current_ma/1000.0,
+                    target_ripple_vpp=ripple_mv/1000.0,
+                    diode_forward_drop_v=diode_drop,
+                    regulator_dropout_v=dropout,
+                    ambient_temperature_c=ambient,
+                    regulator_theta_ja_c_per_w=theta,
+                )
+                report = build_design_report(result)
+                st.session_state["r26_design_result"] = result
+                st.session_state["r26_design_report"] = report
+                st.session_state["r26_design_summary"] = report[:12000]
+            except Exception as exc:
+                st.session_state.pop("r26_design_result", None)
+                st.session_state.pop("r26_design_report", None)
+                st.session_state["r26_design_summary"] = ""
+                st.error(f"Could not generate the design estimate: {type(exc).__name__}: {exc}")
+        result = st.session_state.get("r26_design_result")
+        if result:
+            st.divider()
+            st.markdown("### Preliminary calculation results")
+            st.caption("All values below are calculated estimates from the inputs above; none are simulator or physical measurements.")
+            st.markdown(f"**Screening status:** {result['status']}")
+            k1,k2,k3,k4 = st.columns(4)
+            k1.metric("Minimum smoothing C", f"{result['minimum_capacitance_uf']:.0f} µF")
+            k2.metric("Ripple valley", f"{result['estimated_valley_voltage_v']:.2f} V")
+            k3.metric("Dropout headroom", f"{result['dropout_headroom_v']:.2f} V")
+            k4.metric("Regulator dissipation", f"{result['estimated_regulator_dissipation_w']:.2f} W")
+            st.markdown("**Calculation details**")
+            st.write(f"- Secondary peak: {result['secondary_peak_v']:.3f} V")
+            st.write(f"- Rectified peak after two assumed diode drops: {result['rectified_peak_v']:.3f} V")
+            st.write(f"- Full-wave ripple frequency: {result['ripple_frequency_hz']:.1f} Hz")
+            st.write(f"- Estimated average unregulated voltage: {result['estimated_average_unregulated_voltage_v']:.3f} V")
+            st.write(f"- Required regulator input (output + dropout): {result['required_regulator_input_v']:.3f} V")
+            st.write(f"- Equivalent load resistance: {result['estimated_load_resistance_ohm']:.2f} Ω")
+            st.write(f"- Load power: {result['estimated_load_power_w']:.3f} W")
+            if result["estimated_junction_temperature_c"] is not None:
+                st.write(f"- Indicative junction temperature using entered θJA: {result['estimated_junction_temperature_c']:.1f} °C")
+            st.markdown("**Engineering warnings and assumptions**")
+            for warning in result["warnings"]:
+                st.write("• " + warning)
+            st.download_button("Download preliminary design report", st.session_state["r26_design_report"], file_name="circuitlab_preliminary_5v_supply_design.md", mime="text/markdown")
+            if st.button("Add this design to Copilot context", key="r26_context_add"):
+                st.session_state["r26_design_summary"] = st.session_state["r26_design_report"][:12000]
+                st.success("The preliminary design report is now available in the Copilot context for this session.")
+            with st.expander("Design architecture and validation sequence"):
+                st.markdown("""
+                **Functional chain:** isolated low-voltage AC source → full-wave bridge → smoothing capacitor → linear regulator → load.
+
+                1. Verify the source's isolation, secondary voltage under load and current capability.
+                2. Check each bridge diode's reverse-voltage, average-current, surge and thermal ratings.
+                3. Check capacitor voltage rating, ripple-current rating, ESR, temperature and lifetime.
+                4. Verify regulator input range, dropout at maximum current, output current, dissipation, safe operating area and stability capacitors.
+                5. Recalculate at minimum/maximum input and maximum load, then validate by simulation and controlled laboratory measurement.
+                """)
+        else:
+            st.info("Enter the requirements and select Generate preliminary design to see calculations, warnings and a report.")
+
     with guide_tab:
         st.subheader("Release 2 capabilities")
         st.markdown("""
@@ -227,6 +316,8 @@ def render():
 
         st.subheader("Release 2.4 — Intelligent Fault Diagnosis")
         st.subheader("Release 2.5 — Component Intelligence")
+        st.markdown("Release 2.6 also includes a first-pass design workflow for an isolated low-voltage AC, bridge rectifier, smoothing capacitor and linear regulator supply. It calculates the ripple-capacitance estimate, rectified peak, estimated ripple valley, regulator dropout headroom, regulator dissipation and load equivalent. It produces a preliminary report and component/datasheet validation checklist. The workflow does not size transformer VA, model a regulator, simulate the circuit or certify a physical design.")
+
         st.markdown("""
         - Searchable component catalogue spanning passive components, semiconductors, optoelectronics, ICs, power management, magnetics, protection and switching.
         - Component operating principles, common applications and design-selection criteria.
