@@ -94,3 +94,34 @@ Release 1 introduces a project-first Engineering Command Center while preserving
 - Development branch: `release-1/engineering-interface`
 - Stable baseline: `stable/working-deployment-2026-10-30`
 - Do not merge this branch into `main` or change the live deployment until local and preview tests pass and the owner approves.
+
+
+## Release 2 — AI Engineering Copilot (development branch)
+
+Release 2 adds an AI-assisted engineering workspace while retaining all Release 1 and legacy workspaces.
+
+### What's new
+- AI Engineering Copilot for concept explanations, design reasoning, calculation checks, simulation interpretation and fault diagnosis.
+- Student context fields for project, circuit description, level and task.
+- Deterministic local calculators for Ohm's law, electrical power, voltage dividers, RC time constants and a first-pass full-wave smoothing-capacitor estimate.
+- Explicit distinction between calculated information, user-supplied evidence and simulated/physical measurements.
+- API credentials are read from Streamlit Secrets or an optional session-only password field. No key is stored in source code.
+
+### AI configuration
+Add these values to the separate Streamlit Release 2 test app's Secrets:
+
+    OPENAI_API_KEY = "your-secret-key"
+    OPENAI_MODEL = "gpt-4o-mini"
+
+Optional compatible-provider overrides: OPENAI_BASE_URL and OPENAI_MODEL. Do not commit secrets to GitHub. AI service usage may incur separate API charges and requires an account with API access.
+
+### Current limitations
+- The Copilot does not yet read the live CircuitJS canvas or automatically extract schematic topology/component values. Students must provide circuit descriptions and simulator observations.
+- Conversation and project context remain session-based; persistent user accounts and cloud history are not included.
+- AI-generated advice is not verified simulation output, a safety approval or a substitute for datasheet, lecturer and laboratory checks.
+- This is a development branch. Runtime testing and a separate Streamlit preview deployment are still required.
+
+### Safe development workflow
+- Release 2 branch: `release-2/ai-engineering-copilot`
+- Parent: `release-1/engineering-interface`
+- Do not merge to `main`, alter the stable backup or change the working deployment until tests pass and the owner approves.
