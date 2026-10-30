@@ -165,3 +165,36 @@ Review each detected topology against the actual CircuitJS drawing. In particula
 - Release 2 branch: `release-2/ai-engineering-copilot`
 - Parent: `release-1/engineering-interface`
 - Do not merge to `main`, alter the stable backup or change the working deployment until tests pass and the owner approves.
+
+
+### Release 2.3 — Simulation Intelligence
+
+Release 2.3 adds a deterministic comparison workflow for student-supplied theoretical and CircuitJS simulation values.
+
+#### Capabilities
+- Upload a CSV with `measurement,theoretical,simulated` columns.
+- Optionally provide units, row-specific percentage tolerance and absolute tolerance for zero-reference measurements.
+- Calculate signed absolute difference and percentage error when the theoretical reference is non-zero.
+- Flag each comparison as within tolerance, outside tolerance or requiring review.
+- Download a text comparison summary.
+- Include the comparison summary in the AI Copilot context when an API key is configured.
+
+#### CSV format
+Download the in-app template or create a CSV with these columns:
+
+```csv
+measurement,theoretical,simulated,unit,tolerance_pct,tolerance_abs
+Output voltage,5.0,4.92,V,5,
+Resistor current,0.005,0.00495,A,5,
+Capacitor final voltage,0,0.02,V,,0.05
+```
+
+#### Important interpretation limits
+This workflow compares values entered by the student. It does not connect to, control or read the live CircuitJS simulation; it does not solve the circuit or prove that a measurement is correct. A tolerance flag is a prompt to investigate, not proof of a fault. Check units, measurement points, loading, component tolerances, simulator model assumptions, initial conditions and rounding. Percentage error is undefined for a zero theoretical reference, so an absolute tolerance is required for a pass/fail decision.
+
+#### Release 2.3 regression tests
+Run all Release 2 tests from the project root:
+
+    python -m unittest discover -s tests -v
+
+The tests cover CSV validation, percentage error, tolerance classification and zero-reference handling. They must be executed locally before describing the release as runtime-verified.
