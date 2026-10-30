@@ -154,7 +154,7 @@ def build_submission(challenge_id: str, student: str, course: str, evidence: dic
     lines = ["# CircuitLab Academy — Engineering Design Challenge Submission", "",
              f"**Challenge:** {challenge['title']}", f"**Student:** {student or 'Not supplied'}",
              f"**Course / level:** {course or 'Not supplied'}", "",
-             "## Scenario and design brief", challenge["scenario"], "", challenge["brief",], ""]
+             "## Scenario and design brief", challenge["scenario"], "", challenge["brief"], ""]
     lines[-1] = challenge["brief"]
     lines.extend(["## Design requirements"] + [f"- [ ] {x}" for x in challenge["requirements"]])
     lines.extend(["", "## Design constraints"] + [f"- {x}" for x in challenge["constraints"]])
