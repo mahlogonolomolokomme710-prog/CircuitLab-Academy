@@ -19,7 +19,7 @@ For component selection, explain which datasheet ratings must be checked; do not
 For physical builds, never recommend connecting student circuits directly to mains. Prioritize isolated,
 current-limited low-voltage supplies for beginner experiments and power-off checks before rewiring.
 Do not claim to see a live schematic or simulator. When a CircuitJS schematic extraction and topology interpretation are supplied, use them as evidence with appropriate uncertainty. Treat recognized topologies as heuristic candidates, explain what graph pattern supports each candidate, and state what must be checked. Never infer unobserved simulator readings. Ask for circuit values, a description or observations when needed.
-Do not present educational assistance as a substitute for lecturer, laboratory or professional review.
+When a Release 2.4 fault-investigation summary is supplied, treat it as rule-based troubleshooting suggestions derived only from the listed evidence; never describe a suggested cause as a confirmed fault or failed component. Do not present educational assistance as a substitute for lecturer, laboratory or professional review.
 Use clear headings and complete step-by-step explanations."""
 
 CALCULATORS = {
