@@ -1,14 +1,10 @@
 <!DOCTYPE html>
 <html>
   <head>
-  <link rel="manifest" href="/circuit/manifest.json">
-  
     <!-- Properties can be specified to influence deferred binding -->
     <meta name='gwt:property' content='locale=en_UK'>
-    
-    
-    <!-- Titles are optional, but useful -->
-    <title></title>
+
+    <title>CircuitJS Simulator</title>
 
 <style>
 .disabled {
@@ -23,11 +19,9 @@
 .cursorCross {
    cursor: crosshair;
 }
-
 .cursorSplitter {
    cursor: row-resize;
 }
-
 .gwt-MenuItem-disabled {
 	color: lightgray;
 }
@@ -40,15 +34,12 @@
 	scrolling="no";
 	border: 0px !important;
 }
-
 .gwt-MenuItem {
 	font-size: 12px !important;
 }
-
 .gwt-MenuBar-horizontal {
 	font-size: 12px !important;
 	}
-	
 .gwt-Label-selected {
 	font-size: 1.3em;
 	font-weight: 700;
@@ -58,38 +49,27 @@
 .gwt-Label-1off {
 	color: DarkGray;
 }
-
 .gwt-Label-2off {
 	font-size:0.8em;
 	color: LightGray;
 }
-
 .gwt-Label-current {
 }
-
 .gwt-Button.chbut {
 	padding:3px;
 	margin: 3px;
 }
-
 .gwt-Button.chbut.chsel {
 	font-weight: bold;
 }
-
 .gwt-Button.chbut-black {
 	background: black;
 	color: white;
 }
-
 .gwt-Button.chbut-white {
 	background: white;
 	color: black;
 }
-
-.gwt-TextBox.scalebox {
-	width: 100px;
-}
-
 .gwt-Button.expand-but {
 	line-height: 0;
 	font-size: 13px;
@@ -107,8 +87,6 @@
 	background:gray;
 	color:white;
 }
-
-
 .topButton-red {
     margin-top: 5px;
     margin-bottom: 5px;
@@ -119,13 +97,12 @@
     cursor: pointer;
     cursor: hand;
     font-size: small;
-    background-color: #ff0000; 
+    background-color: #ff0000;
     border: 1px solid #bbb;
     border-bottom: 1px solid #a0a0a0;
     border-radius: 3px;
     -moz-border-radius: 3px;
 }
-
 .topButton {
     margin-top: 5px;
     margin-bottom: 5px;
@@ -135,49 +112,28 @@
     cursor: pointer;
     cursor: hand;
     font-size: small;
-    background-color: #e7e7e7; 
+    background-color: #e7e7e7;
     border: 1px solid #bbb;
     border-bottom: 1px solid #a0a0a0;
     border-radius: 3px;
     -moz-border-radius: 3px;
 }
-
 .radioPanel label {
 	margin-right: 15px;
 }
-
 </style>
 
 <link rel="stylesheet" href="font/fontello.css">
-
-</head>
+  </head>
   <body>
-  <!-- Include the next line to allow support for dropbox import/export. You will need your own app key. -->
-  <!--<script type="text/javascript" src="https://www.dropbox.com/static/api/2/dropins.js" id="dropboxjs" data-app-key="YOUR_KEY"></script>-->
+    <!-- Include the next line to allow support for dropbox import/export.
+         A valid application key is required; disabled by default. -->
+    <!--<script type="text/javascript" src="https://www.dropbox.com/static/api/2/dropins.js" id="dropboxjs" data-app-key="YOUR_KEY"></script>-->
 
-  <script language="javascript" src="lz-string.min.js"></script>
-   
-    <!-- This script tag is what actually loads the GWT module.  The -->
-    <!-- 'nocache.js' file (also called a "selection script") is     -->
-    <!-- produced by the GWT compiler in the module output directory -->
-    <!-- or generated automatically in development mode.             -->
+    <script language="javascript" src="lz-string.min.js"></script>
     <script language="javascript" src="circuitjs1/circuitjs1.nocache.js"></script>
-    
-    <!-- Include a history iframe to enable full GWT history support -->
-    <!-- (the id must be exactly as shown)                           -->
-    <iframe src="javascript:''" id="__gwt_historyFrame" style="width:0;height:0;border:0"></iframe>
-    
-    <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-	navigator.serviceWorker.register('service-worker.js').then(registration => {
-	  console.log('Service Worker registered with scope:', registration.scope);
-	}).catch(error => {
-	  console.error('Service Worker registration failed:', error);
-	});
-      });
-    }
-    </script>
 
+    <!-- Include a history iframe to enable full GWT history support -->
+    <iframe src="javascript:''" id="__gwt_historyFrame" style="width:0;height:0;border:0"></iframe>
   </body>
- </html>
+</html>

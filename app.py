@@ -53,13 +53,11 @@ SIMULATIONS = {
 }
 
 def circuit_simulator_url(circuit_key):
-    """Return the same-origin CircuitJS URL when bundled assets exist, otherwise use hosted fallback."""
+    """Use the upstream hosted CircuitJS page to avoid Streamlit Cloud static-asset proxy failures."""
     meta = SIMULATIONS[circuit_key]
     circuit_file = PREPARED_DIR / meta["file"]
     circuit_text = circuit_file.read_text(encoding="utf-8")
     encoded = quote(circuit_text, safe="")
-    if CIRCUITJS_ENTRY.is_file():
-        return f"/app/static/circuitjs/circuitjs.html?cct={encoded}", True
     return f"https://www.falstad.com/circuit/circuitjs.html?cct={encoded}", False
 
 
@@ -370,16 +368,28 @@ def portfolio_add(category, item):
 
 st.sidebar.title("⚡ CircuitLab Academy")
 
-st.sidebar.caption("TUT Electrical Engineering • Circuit Intelligence Studio v1.0")
+st.sidebar.caption("TUT Electrical Engineering • CircuitLab Academy Release 3 preview")
 page = st.sidebar.radio("Workspace", [
-    "Mission Control", "Mission Studio", "Circuit Workspace", "Circuit Simulator",
+    "Engineering Command Center", "AI Engineering Copilot", "Interactive Engineering Studio", "Mission Control", "Mission Studio", "Circuit Workspace", "Circuit Simulator",
     "Prepared Circuit Library", "Guided Build", "Fault Detective", "Design Bench",
     "Component Library", "Skill Arena", "Engineering Portfolio", "Calculators",
     "Knowledge Check", "Project Report", "Curriculum Map"
 ])
 st.sidebar.markdown("---")
-st.sidebar.caption("Mission-based engineering learning • v1.0")
+st.sidebar.caption("Build • Understand • Simulate • Diagnose • Master")
 
+
+if page == "Engineering Command Center":
+    from release1_ui import render as render_engineering_command_center
+    render_engineering_command_center()
+
+elif page == "AI Engineering Copilot":
+    from release2_copilot import render as render_ai_engineering_copilot
+    render_ai_engineering_copilot()
+
+elif page == "Interactive Engineering Studio":
+    from release3_studio import render as render_interactive_engineering_studio
+    render_interactive_engineering_studio()
 
 if page == "Mission Control":
     st.markdown("""<div class="hero"><h1>CircuitLab Academy</h1>
@@ -660,9 +670,9 @@ elif page == "Circuit Simulator" or page == "Prepared Circuit Library":
 
     circuit_url, is_self_hosted = circuit_simulator_url(selected)
     if is_self_hosted:
-        st.success("Self-hosted CircuitJS assets detected. The simulator is being served from this app's own static folder.")
+        st.success("CircuitJS is running from the bundled simulator assets.")
     else:
-        st.warning("Self-hosted assets are not installed in this working copy yet. This session is using the hosted fallback. Install the bundled CircuitJS1 assets in `static/circuitjs/` to enable same-origin simulation.")
+        st.info("The interactive simulator is loaded from the official hosted CircuitJS service. This avoids a static-file routing issue affecting bundled assets on Streamlit Community Cloud.")
     st.subheader("Live circuit")
     st.iframe(circuit_url, height=760)
 
