@@ -133,12 +133,22 @@ def rubric_total(challenge_id: str) -> int:
     return sum(CHALLENGES[challenge_id]["rubric"].values())
 
 
-def evidence_completion(challenge_id: str, completed: list[str]) -> dict[str, Any]:
-    """Return a transparent evidence-completion indicator, not a technical grade."""
+def evidence_completion(challenge_id: str, completed: list[str],
+                        evidence: dict[str, str] | None = None) -> dict[str, Any]:
+    """Return a transparent evidence-completion indicator, not a technical grade.
+
+    When evidence is supplied, a category counts as complete only when its
+    evidence field contains non-whitespace content as well as being checked.
+    """
     if challenge_id not in CHALLENGES:
         raise ValueError("Unknown design challenge.")
     rubric = CHALLENGES[challenge_id]["rubric"]
-    valid = [item for item in rubric if item in completed]
+    valid = [
+        item for item in rubric
+        if item in completed and (
+            evidence is None or bool(str(evidence.get(item, "")).strip())
+        )
+    ]
     score = sum(rubric[item] for item in valid)
     return {"completed_categories": valid, "missing_categories": [item for item in rubric if item not in valid],
             "points": score, "maximum": sum(rubric.values()),
@@ -150,7 +160,7 @@ def build_submission(challenge_id: str, student: str, course: str, evidence: dic
     if challenge_id not in CHALLENGES:
         raise ValueError("Unknown design challenge.")
     challenge = CHALLENGES[challenge_id]
-    status = evidence_completion(challenge_id, completed)
+    status = evidence_completion(challenge_id, completed, evidence)
     lines = ["# CircuitLab Academy — Engineering Design Challenge Submission", "",
              f"**Challenge:** {challenge['title']}", f"**Student:** {student or 'Not supplied'}",
              f"**Course / level:** {course or 'Not supplied'}", "",
@@ -222,7 +232,7 @@ def render_design_challenge_centre() -> None:
                     completed.append(criterion)
         reflection = st.text_area("Engineering reflection: what changed after reviewing your evidence?",
                                    key=f"r44_reflection_{challenge_id}", height=110)
-        status = evidence_completion(challenge_id, completed)
+        status = evidence_completion(challenge_id, completed, evidence)
         st.progress(status["percentage"] / 100)
         st.metric("Evidence completeness (self-reported)", f"{status['points']} / {status['maximum']}")
         st.caption("This indicator measures only the rubric categories you marked complete. It does not judge technical correctness or award an academic grade.")
