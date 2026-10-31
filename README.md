@@ -735,3 +735,28 @@ Run from the repository root:
 The tests cover challenge completeness, rubric totals, evidence-completion behaviour, unknown challenge handling and submission-pack content. Evidence marked complete is counted only when its corresponding evidence field contains non-whitespace content. Execute tests and complete a local Streamlit preview before describing Release 4.4 as runtime-verified.
 
 Development branch: \`release-4/electronics-university\`. Stable \`main\` and the existing deployed application remain unchanged.
+
+
+### Release 4.5 — Student Engineering Portfolio and Progress Tracker
+
+Release 4.5 adds a student-owned portfolio for recording engineering projects, simulations, practical laboratory work, assessments, design challenges and technical reports.
+
+#### Portfolio capabilities
+- Student profile fields for preferred identifier, programme and institution.
+- Add entries with artefact type, module, date, status, skills, summary, evidence references and personal reflection.
+- Update an entry's status or remove an entry.
+- Progress overview showing recorded/completed entries and distinct skills documented.
+- Export a complete Markdown portfolio report, CSV entry list and JSON backup.
+- Restore a previously downloaded JSON portfolio with schema and field validation.
+
+#### Data handling and limitations
+Portfolio data is held in the current Streamlit session. It is not a permanent cloud account, institutional record, lecturer gradebook or verified competency credential. Students should download the JSON backup before ending a session and restore it when needed. Status and skills are self-reported; the app does not independently verify evidence or award qualifications. Avoid including passwords, private credentials or unnecessary personal information in portfolio evidence.
+
+#### Regression tests
+Run from the repository root:
+
+    python -m unittest discover -s tests -p "test_release4_portfolio.py" -v
+
+The tests cover portfolio creation, immutable entry addition, progress summaries, Markdown/CSV/JSON exports, restore validation, invalid entries and size limits. Execute tests and complete a local Streamlit preview before describing Release 4.5 as runtime-verified.
+
+Development branch: `release-4/electronics-university`. Stable `main` and the existing deployed application remain unchanged.
