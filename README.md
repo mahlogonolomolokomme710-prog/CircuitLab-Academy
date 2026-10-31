@@ -760,3 +760,37 @@ Run from the repository root:
 The tests cover portfolio creation, immutable entry addition, progress summaries, Markdown/CSV/JSON exports, restore validation, invalid entries and size limits. Execute tests and complete a local Streamlit preview before describing Release 4.5 as runtime-verified.
 
 Development branch: `release-4/electronics-university`. Stable `main` and the existing deployed application remain unchanged.
+
+
+### Release 4.6 — Lecturer and Classroom Management Workspace
+
+Release 4.6 adds a lecturer-facing workspace for organising teaching groups and maintaining structured assignment records.
+
+#### Class and roster management
+- Create class groups with module and cohort metadata.
+- Add students individually using a unique class-level student identifier.
+- Import a roster CSV with required `student_id` and `name` columns and optional `email`.
+- Download a roster CSV template.
+
+#### Assignment builder
+- Create an assignment for a selected class with title, instructions / learning outcomes and due date.
+- Define a weighted marking rubric. Criterion names must be unique and weights must total exactly 100 marks.
+- Download an assignment brief with its rubric.
+
+#### Lecturer-entered markbook
+- Record a student's submission status, date received, marks against each rubric criterion and lecturer feedback.
+- Enforce each criterion's maximum mark and calculate totals.
+- Show class-level submission/review counts and the average of records marked Reviewed.
+- Export an assignment markbook as CSV or an assignment report as Markdown.
+
+#### Backup, privacy and limitations
+The workspace is held in the current Streamlit session. Download and securely retain the JSON backup to preserve records between sessions. Roster imports, submission statuses, marks and feedback are manually entered by the lecturer. This is not a student upload portal, authenticated multi-user learning-management system, permanent cloud database, automated notification service or official institutional gradebook. It does not verify student identity or the authenticity/timing of submitted work. Only process student information you are authorised to handle, and protect downloaded roster and markbook files as confidential records. No official TUT integration is claimed.
+
+#### Regression tests
+Run from the repository root:
+
+    python -m unittest discover -s tests -p "test_release4_lecturer.py" -v
+
+The tests cover class and roster validation, CSV import, rubric weighting, assignment validation, mark limits, reviewed-score calculations, exports and JSON backup/restore. Execute tests and complete a local Streamlit preview before describing Release 4.6 as runtime-verified.
+
+Development branch: `release-4/electronics-university`. Stable `main` and the existing deployed application remain unchanged.
