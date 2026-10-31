@@ -732,6 +732,6 @@ Run from the repository root:
 
     python -m unittest discover -s tests -p "test_release4_challenges.py" -v
 
-The tests cover challenge completeness, rubric totals, evidence-completion behaviour, unknown challenge handling and submission-pack content. Execute tests and complete a local Streamlit preview before describing Release 4.4 as runtime-verified.
+The tests cover challenge completeness, rubric totals, evidence-completion behaviour, unknown challenge handling and submission-pack content. Evidence marked complete is counted only when its corresponding evidence field contains non-whitespace content. Execute tests and complete a local Streamlit preview before describing Release 4.4 as runtime-verified.
 
 Development branch: \`release-4/electronics-university\`. Stable \`main\` and the existing deployed application remain unchanged.
