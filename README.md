@@ -794,3 +794,38 @@ Run from the repository root:
 The tests cover class and roster validation, CSV import, rubric weighting, assignment validation, mark limits, reviewed-score calculations, exports and JSON backup/restore. Execute tests and complete a local Streamlit preview before describing Release 4.6 as runtime-verified.
 
 Development branch: `release-4/electronics-university`. Stable `main` and the existing deployed application remain unchanged.
+
+
+### Release 4.7 — Engineering Analytics and Performance Intelligence
+
+Release 4.7 adds descriptive class-performance analytics using the lecturer-entered records created in Release 4.6.
+
+#### Class performance dashboard
+- Select a class group and view student count, assignment count, reviewed-record count and the mean of reviewed assignment marks.
+- Visualise submission/review status counts and mean reviewed mark by assignment.
+- Compare rubric criterion performance after normalising each mark to that criterion's maximum.
+- Inspect assignment-level received/reviewed coverage and student-level progress.
+
+#### Student follow-up indicators
+- Show each student's reviewed-assessment average and review coverage.
+- Flag a reviewed average below 50% for human review.
+- Flag incomplete/unreviewed records for follow-up.
+- Missing and unreviewed assignments are not treated as zero marks. Only records with status Reviewed contribute to mark averages.
+
+These indicators are descriptive prompts for a lecturer, not predictive analytics, risk classifications, automated interventions, rankings or academic decisions. They do not account for assessment difficulty, accommodations, attendance, cohort context or data-entry errors. A lecturer must review source records and institutional policy before acting.
+
+#### Exports
+- Student-level class analytics as CSV.
+- A class performance report as Markdown, including submission coverage, assignment outcomes, criterion summaries and student-level descriptive indicators.
+
+#### Data source, privacy and limitations
+Release 4.7 reads the current Release 4.6 lecturer workspace in the active Streamlit session. It does not create independent student records or a permanent database. All underlying submission statuses, marks and feedback are lecturer-entered and are not independently verified. The output is not an official institutional gradebook, verified academic transcript or accredited student-performance measure. Protect exported student-level information as confidential records and only process information you are authorised to handle.
+
+#### Regression tests
+Run from the repository root:
+
+    python -m unittest discover -s tests -p "test_release4_analytics.py" -v
+
+The tests cover class summaries, reviewed-only averages, missing/unreviewed handling, normalised rubric summaries, assignment coverage, empty classes, CSV/Markdown exports and human-follow-up flags. Execute tests and complete a local Streamlit preview before describing Release 4.7 as runtime-verified.
+
+Development branch: `release-4/electronics-university`. Stable `main` and the existing deployed application remain unchanged.
