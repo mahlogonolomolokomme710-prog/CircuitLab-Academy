@@ -421,6 +421,11 @@ def render() -> None:
     from release4_portfolio import render_student_portfolio
     render_student_portfolio()
 
+    st.divider()
+    st.markdown("## Release 4.6 · Lecturer & Classroom Management")
+    from release4_lecturer import render_lecturer_workspace
+    render_lecturer_workspace()
+
 
 def _to_netlist(records: list[dict[str, Any]]) -> str:
     lines = ["* CircuitLab Academy Release 3.1 — ideal DC resistor/source network"]
