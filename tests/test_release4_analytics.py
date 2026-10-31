@@ -86,7 +86,7 @@ class EngineeringAnalyticsTests(unittest.TestCase):
         report = analytics_markdown(result)
         self.assertIn("S1", csv_text)
         self.assertIn("Engineering performance overview", report)
-        self.assertIn("not counted as a zero", report.lower())
+        self.assertIn("not treated as a zero", report.lower())
 
     def test_low_average_flag_is_descriptive(self):
         data = make_workspace()
