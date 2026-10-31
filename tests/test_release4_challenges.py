@@ -32,6 +32,20 @@ class DesignChallengeTests(unittest.TestCase):
         self.assertEqual(result["points"], 100)
         self.assertEqual(result["percentage"], 100)
 
+    def test_checked_category_without_evidence_does_not_count(self):
+        result = evidence_completion("rc_timer", ["Theory and derivation"], {})
+        self.assertEqual(result["points"], 0)
+        self.assertIn("Theory and derivation", result["missing_categories"])
+
+    def test_checked_category_with_evidence_counts(self):
+        result = evidence_completion(
+            "rc_timer",
+            ["Theory and derivation"],
+            {"Theory and derivation": "V_C(t) = V_S(1 - e^(-t/RC))"}
+        )
+        self.assertEqual(result["points"], 20)
+        self.assertIn("Theory and derivation", result["completed_categories"])
+
     def test_unknown_challenge_rejected(self):
         with self.assertRaises(ValueError):
             rubric_total("unknown")
